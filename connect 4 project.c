@@ -10,6 +10,8 @@ typedef struct{
 
 void scan_game(int rows, int cols, char game[][cols]);
 void creat_game(int rows, int cols, char game[][cols], int available_cols[]);
+void start_game(int rows, int cols, char game[][cols]);
+void move_player(int rows, int cols, int select_col, char game[][cols], int available_cols[], player playerTurn)
 
 int main()
 {
@@ -45,7 +47,7 @@ void scan_game(int rows, int cols, char game[][cols])
         }
         printf("\n");
     }
-    return 0;
+    //return 0;
 }
 
 void creat_game(int rows, int cols, char game[][cols], int available_cols[])
@@ -79,12 +81,12 @@ void creat_game(int rows, int cols, char game[][cols], int available_cols[])
     {
         available_cols[i] = 0;
     }
-    return 0;
+    //return 0;
 }
 
 void start_game(int rows, int cols, char game[][cols])
 {
-
+    //return 0;
 }
 
 void move_player(int rows, int cols, int select_col, char game[][cols], int available_cols[], player playerTurn)
@@ -92,11 +94,10 @@ void move_player(int rows, int cols, int select_col, char game[][cols], int avai
     do{scanf("%d", &select_col);}
     while(select_col < 1 || select_col > cols/2 || available_cols[select_col-1] == (rows/2));
     //if(is_available(rows, cols, select_col, available_cols))
-    //{
+    
         game[rows - (2+2*(available_cols[select_col-1]))][(select_col*2)-1] = playerTurn.symbol;
         available_cols[select_col-1]++;
         scan_game(rows, cols, game);
-    //}
 }
 
 /*int is_available(int rows, int cols, int select_col, int available_cols[])  //-> width = cols/2
@@ -109,7 +110,7 @@ void move_player(int rows, int cols, int select_col, char game[][cols], int avai
     //if(available_cols[select_col-1] == (rows/2)) return 0;
     return 1;
 }
-//test bassam
+//test bassam*/
 
 
 
