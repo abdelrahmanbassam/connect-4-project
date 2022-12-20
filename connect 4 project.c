@@ -104,7 +104,7 @@ int is_available(int rows, int cols, int select_col, int available_cols[])
     //available_cols[select_col-1]++;
     return 1;
 }
-
+//test bassam
 
 
 
