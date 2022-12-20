@@ -1,6 +1,92 @@
 #include <stdio.h>
 #include <stdlib.h>
+int CountScore(int rows, int colns,char playersymbol,char game[rows][colns])
+{
 
+    int playerscore=0;
+    int counter=0;
+
+    //count score Horizontally
+    for(int i=1;i<rows;i+=2)
+    {
+     counter=0;
+      for(int j=1;j<colns;j+=2)
+      {
+       if(game[i][j]==playersymbol)
+        counter++;
+        else
+        {
+        if(counter>4||counter==4)
+        playerscore+=(counter%4+1);
+        }
+        counter =0;
+      }
+
+    }
+     return playerscore;
+
+     //count score  vertically
+     for(int j=1;j<colns;j+=2)
+    {
+    counter=0;
+      for(int i=1;i<rows;i+=2)
+      {
+       if(game[i][j]==playersymbol)
+        counter++;
+        else
+        {
+        if(counter>4||counter==4)
+        playerscore+=(counter%4+1);
+        }
+        counter=0;
+      }
+    }
+
+    //count score diagonally
+    for (int i = 1; i < (rows-3); i+=2)
+    {
+        counter=0;
+        for (int j=1; j < (colns-3); j+=2)
+        {
+            while(j<(colns))
+            {
+              counter=0;
+              if(game[i][j]==playersymbol)
+              counter++;
+              else
+              {
+              if(counter>4||counter==4)
+              playerscore+=(counter%4+1);
+
+              }
+              i+=2;j+=2;counter=0;
+            }
+        }
+
+    }
+    //count score diagonal backward
+    for (int i = 1; i < (rows-3); i+=2)
+    {
+        counter=0;
+        for (int j=(colns-1);j>(6); j-=2)
+        {
+            while(j>0)
+            {
+              counter=0;
+              if(game[i][j]==playersymbol)
+              counter++;
+              else
+              {
+              if(counter>4||counter==4)
+              playerscore+=(counter%4+1);
+              }
+              i+=2;j-=2;counter=0;
+            }
+        }
+
+    }
+    return playerscore;
+}
 typedef struct{
     char name[100];
     char symbol;
@@ -13,6 +99,7 @@ void creat_game(int rows, int cols, char game[][cols], int available_cols[]);
 
 int main()
 {
+    int score1;
     int hight, width;
     player first, second;
     first.symbol = 'X', second.symbol = 'O';
@@ -29,6 +116,8 @@ int main()
 
     }
 
+
+ printf("%d",CountScore(rows,cols,first.symbol,game));
 
 
 }
@@ -89,23 +178,25 @@ void start_game(int rows, int cols, char game[][cols])
 
 void move_player(int rows, int cols, int select_col, char game[][cols], int available_cols[], player playerTurn)
 {
-    scanf("%d", &select_col);
-    if(is_available(rows, cols, select_col, available_cols))
-    {
+    do{scanf("%d", &select_col);}
+    while(select_col < 1 || select_col > cols/2 || available_cols[select_col-1] == (rows/2));
+    //if(is_available(rows, cols, select_col, available_cols))
+    //{
         game[rows - (2+2*(available_cols[select_col-1]))][(select_col*2)-1] = playerTurn.symbol;
         available_cols[select_col-1]++;
         scan_game(rows, cols, game);
+    //}
+}
+
+/*int is_available(int rows, int cols, int select_col, int available_cols[])  //-> width = cols/2
+{                                                                           //-> hight = rows/2
+    if(select_col < 1 || select_col > cols/2 || available_cols[select_col-1] == (rows/2))
+    {
+        printf("please, enter a valid col\n");
+        return 0;
     }
-}
-
-int is_available(int rows, int cols, int select_col, int available_cols[])
-{
-    if(available_cols[select_col-1] == (rows/2)) return 0;
-    //available_cols[select_col-1]++;
+    //if(available_cols[select_col-1] == (rows/2)) return 0;
     return 1;
-}
+    */
+
 //test bassam
-
-
-
-
