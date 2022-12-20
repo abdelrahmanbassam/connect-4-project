@@ -18,8 +18,9 @@ int CountScore(int rows, int colns,char playersymbol,char game[rows][colns])
         {
         if(counter>4||counter==4)
         playerscore+=(counter%4+1);
-        }
         counter =0;
+        }
+
       }
 
     }
@@ -37,8 +38,9 @@ int CountScore(int rows, int colns,char playersymbol,char game[rows][colns])
         {
         if(counter>4||counter==4)
         playerscore+=(counter%4+1);
-        }
         counter=0;
+        }
+        
       }
     }
 
@@ -57,9 +59,9 @@ int CountScore(int rows, int colns,char playersymbol,char game[rows][colns])
               {
               if(counter>4||counter==4)
               playerscore+=(counter%4+1);
-
+              counter=0;
               }
-              i+=2;j+=2;counter=0;
+              i+=2;j+=2;
             }
         }
 
@@ -79,8 +81,9 @@ int CountScore(int rows, int colns,char playersymbol,char game[rows][colns])
               {
               if(counter>4||counter==4)
               playerscore+=(counter%4+1);
+              counter=0;
               }
-              i+=2;j-=2;counter=0;
+              i+=2;j-=2;
             }
         }
 
@@ -117,7 +120,7 @@ int main()
     }
 
 
- printf("%d",CountScore(rows,cols,first.symbol,game));
+ printf("%d",CountScore(rows,cols,'X',game));
 
 
 }
