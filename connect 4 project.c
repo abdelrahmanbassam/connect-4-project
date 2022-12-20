@@ -18,6 +18,7 @@ int CountScore(int rows, int cols,player playerTurn,char game[rows][cols])
     {
       for(int j=1;j<=cols;j+=2)
       {
+        //if we don't want to look outside the game[][]->if(J==cols)J--
        if((game[i][j]==playerTurn.symbol))counter++;
         else
         {
@@ -31,6 +32,7 @@ int CountScore(int rows, int cols,player playerTurn,char game[rows][cols])
     {
       for(int i=1;i<=rows;i+=2)
       {
+        //if we don't want to look outside the game[][]->if(i==rows)i--
        if((game[i][j]==playerTurn.symbol))counter++;
         else
         {
@@ -47,6 +49,7 @@ int CountScore(int rows, int cols,player playerTurn,char game[rows][cols])
         {y=j;
             while(y<=cols&&x<=rows)
             {
+                //if we don't want to look outside the game[][]->if(x==rows||y==cols)->x--;y--;
               if(game[x][y]==playerTurn.symbol)counter++;
               else
               {
@@ -68,7 +71,7 @@ int CountScore(int rows, int cols,player playerTurn,char game[rows][cols])
         {y=j;
             while(y>=-1&&x<=rows)
             {
-              if(x==(rows)||y==(-1)){x++;y--;}
+                 //if we don't want to look outside the game[][]->if(x==rows||y==-1)->x--;y++
               if(game[x][y]==playerTurn.symbol)
               counter++;
               else
