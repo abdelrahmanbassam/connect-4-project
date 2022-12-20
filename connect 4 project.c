@@ -1,101 +1,91 @@
 #include <stdio.h>
 #include <stdlib.h>
-int CountScore(int rows, int colns,char playersymbol,char game[rows][colns])
-{
-
-    int playerscore=0;
-    int counter=0;
-
-    //count score Horizontally
-    for(int i=1;i<rows;i+=2)
-    {
-     counter=0;
-      for(int j=1;j<colns;j+=2)
-      {
-       if(game[i][j]==playersymbol)
-        counter++;
-        else
-        {
-        if(counter>4||counter==4)
-        playerscore+=(counter%4+1);
-        counter =0;
-        }
-
-      }
-
-    }
-     return playerscore;
-
-     //count score  vertically
-     for(int j=1;j<colns;j+=2)
-    {
-    counter=0;
-      for(int i=1;i<rows;i+=2)
-      {
-       if(game[i][j]==playersymbol)
-        counter++;
-        else
-        {
-        if(counter>4||counter==4)
-        playerscore+=(counter%4+1);
-        counter=0;
-        }
-        
-      }
-    }
-
-    //count score diagonally
-    for (int i = 1; i < (rows-3); i+=2)
-    {
-        counter=0;
-        for (int j=1; j < (colns-3); j+=2)
-        {
-            while(j<(colns))
-            {
-              counter=0;
-              if(game[i][j]==playersymbol)
-              counter++;
-              else
-              {
-              if(counter>4||counter==4)
-              playerscore+=(counter%4+1);
-              counter=0;
-              }
-              i+=2;j+=2;
-            }
-        }
-
-    }
-    //count score diagonal backward
-    for (int i = 1; i < (rows-3); i+=2)
-    {
-        counter=0;
-        for (int j=(colns-1);j>(6); j-=2)
-        {
-            while(j>0)
-            {
-              counter=0;
-              if(game[i][j]==playersymbol)
-              counter++;
-              else
-              {
-              if(counter>4||counter==4)
-              playerscore+=(counter%4+1);
-              counter=0;
-              }
-              i+=2;j-=2;
-            }
-        }
-
-    }
-    return playerscore;
-}
 typedef struct{
     char name[100];
     char symbol;
     int score;
     int numOfMove;
 }player;
+
+
+int CountScore(int rows, int cols,player playerTurn,char game[rows][cols])
+{
+    playerTurn.score=0;
+    int counter=0,x,y;
+
+//count score Horizontally
+    for(int i=1;i<rows;i+=2,counter=0)
+    {
+      for(int j=1;j<=cols;j+=2)
+      {
+       if((game[i][j]==playerTurn.symbol))counter++;
+        else
+        {
+        if(counter>=4)playerTurn.score+=(counter-4+1);
+        counter =0;
+        }
+      }
+    }
+//count score  vertically
+     for(int j=1;j<cols;j+=2,counter=0)
+    {
+      for(int i=1;i<=rows;i+=2)
+      {
+       if((game[i][j]==playerTurn.symbol))counter++;
+        else
+        {
+        if(counter>=4)playerTurn.score+=(counter-4+1);
+        counter =0;
+        }
+      }
+    }
+
+//count score diagonally
+    for (int i = 1; i <rows; i+=2,counter=0)
+    {x=i;
+        for (int j=1; j <cols; j+=2)
+        {y=j;
+            while(y<=cols&&x<=rows)
+            {
+              if(game[x][y]==playerTurn.symbol)counter++;
+              else
+              {
+              if(counter>=4)playerTurn.score+=(counter-4+1);
+              counter=0;
+              }
+              x+=2;y+=2;
+            }
+            x=i;
+            if (i>1)break;
+        }
+    }
+
+//count score diagonal backward
+    for (int i = 1; i <rows; i+=2,counter=0)
+    {x=i;
+
+        for (int j=(cols-2);j>0;j-=2,counter=0)
+        {y=j;
+            while(y>=-1&&x<=rows)
+            {
+              if(x==(rows)||y==(-1)){x++;y--;}
+              if(game[x][y]==playerTurn.symbol)
+              counter++;
+              else
+              {
+              if(counter>=4)playerTurn.score+=(counter-4+1);
+              counter=0;
+              }
+              x+=2;y-=2;
+            }
+            x=i;
+            if (i>1)break;
+        }
+
+    }
+    return playerTurn.score;
+}
+
 
 void scan_game(int rows, int cols, char game[][cols]);
 void creat_game(int rows, int cols, char game[][cols], int available_cols[]);
@@ -120,7 +110,8 @@ int main()
     }
 
 
- printf("%d",CountScore(rows,cols,'X',game));
+ printf("%d ",CountScore(rows,cols,first,game));
+ printf("%d ",CountScore(rows,cols,second,game));
 
 
 }
