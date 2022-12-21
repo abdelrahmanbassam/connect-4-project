@@ -173,6 +173,8 @@ void start_game(int rows, int cols, char game[][cols])
 
 }
 
+//teeeeeeeeeeeeeeeeeeeeeeeest//
+
 void move_player(int rows, int cols, int select_col, char game[][cols], int available_cols[], player playerTurn)
 {
     do{scanf("%d", &select_col);}
@@ -195,5 +197,4 @@ void move_player(int rows, int cols, int select_col, char game[][cols], int avai
     //if(available_cols[select_col-1] == (rows/2)) return 0;
     return 1;
     */
-   //ابراهيم سردينة
    
