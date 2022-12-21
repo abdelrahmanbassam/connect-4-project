@@ -67,7 +67,7 @@ int CountScore(int rows, int cols,player playerTurn,char game[rows][cols])
     for (int i = 1; i <rows; i+=2,counter=0)
     {x=i;
 
-        for (int j=(cols-2);j>0;j-=2,counter=0)
+        for (int j=(cols-2);j>0;j-=2)
         {y=j;
             while(y>=-1&&x<=rows)
             {
@@ -195,5 +195,3 @@ void move_player(int rows, int cols, int select_col, char game[][cols], int avai
     //if(available_cols[select_col-1] == (rows/2)) return 0;
     return 1;
     */
-
-
