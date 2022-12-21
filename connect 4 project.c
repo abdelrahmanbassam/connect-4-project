@@ -195,3 +195,5 @@ void move_player(int rows, int cols, int select_col, char game[][cols], int avai
     //if(available_cols[select_col-1] == (rows/2)) return 0;
     return 1;
     */
+   //ابراهيم سردينة
+   
