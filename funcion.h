@@ -88,38 +88,38 @@ int CountScore(int rows, int cols,player playerTurn,char game[rows][cols])
     int counter=0,x,y;
 
 //count score Horizontally
-    for(int i=1;i<rows;i+=2,counter=0)
+    for(int i=0;i<rows;i++,counter=0)
     {
-      for(int j=1;j<=cols;j+=2)
+      for(int j=0;j<=cols;j++)
       {
         //if we don't want to look outside the game[][]->if(J==cols)J--
        if((game[i][j]==playerTurn.symbol))counter++;
         else
         {
-        if(counter>=4)playerTurn.score+=(counter-4+1);
+        if(counter>=4)playerTurn.score+=(counter-3);
         counter =0;
         }
       }
     }
 //count score  vertically
-     for(int j=1;j<cols;j+=2,counter=0)
+     for(int j=0;j<cols;j++,counter=0)
     {
-      for(int i=1;i<=rows;i+=2)
+      for(int i=0;i<=rows;i++)
       {
         //if we don't want to look outside the game[][]->if(i==rows)i--
        if((game[i][j]==playerTurn.symbol))counter++;
         else
         {
-        if(counter>=4)playerTurn.score+=(counter-4+1);
+        if(counter>=4)playerTurn.score+=(counter-3);
         counter =0;
         }
       }
     }
 
-//count score diagonally
-    for (int i = 1; i <rows; i+=2,counter=0)
+ //count score diagonally
+    for (int i = 0; i <rows; i++,counter=0)
     {x=i;
-        for (int j=1; j <cols; j+=2)
+        for (int j=0; j <cols; j++,counter=0)
         {y=j;
             while(y<=cols&&x<=rows)
             {
@@ -127,42 +127,40 @@ int CountScore(int rows, int cols,player playerTurn,char game[rows][cols])
               if(game[x][y]==playerTurn.symbol)counter++;
               else
               {
-              if(counter>=4)playerTurn.score+=(counter-4+1);
+              if(counter>=4)playerTurn.score+=(counter-3);
               counter=0;
               }
-              x+=2;y+=2;
+              x++;y++;
             }
             x=i;
-            if (i>1)break;
+            if (i>0)break;
         }
     }
 
-//count score diagonal backward
-    for (int i = 1; i <rows; i+=2,counter=0)
-    {x=i;
 
-        for (int j=(cols-2);j>0;j-=2)
+
+ //count score diagonal backward
+    for (int i = 0; i <rows; i++,counter=0)
+    {x=i;
+        for (int j=(cols-1);j>=0;j--,counter=0)
         {y=j;
             while(y>=-1&&x<=rows)
             {
                  //if we don't want to look outside the game[][]->if(x==rows||y==-1)->x--;y++
-              if(game[x][y]==playerTurn.symbol)
-              counter++;
+              if(game[x][y]==playerTurn.symbol)counter++;
               else
               {
-              if(counter>=4)playerTurn.score+=(counter-4+1);
+              if(counter>=4)playerTurn.score+=(counter-3);
               counter=0;
               }
-              x+=2;y-=2;
+              x++;y--;
             }
             x=i;
-            if (i>1)break;
+            if (i>0)break;
         }
-
     }
     return playerTurn.score;
 }
-
 
 void move_player(int rows, int cols, char game[][cols], int available_cols[], int select_cols[], int *totMove, player playerTurn)
 {
