@@ -107,6 +107,7 @@ void make_move(int rows, int cols, char game[][cols], int available_cols[], int 
     return 0;
 }
 
+
 void undo(int rows, int cols, char game[][cols], int *nofUndo, int *totMove, int select_cols[], int available_cols[], int undo_moves[][2])
 {
     int des_row, des_col;
@@ -134,33 +135,54 @@ void redo(int rows, int cols, char game[][cols], int *nofUndo, int *totMove, int
     available_cols[des_col]--;
 }
 
-int count_4(int rows, int cols, char game[][cols], int des_row, int des_col, player playerTurn, int i, int j)
-{
-    if((des_row + i) < 0 || (des_row + i) > (rows-1) || (des_col + j) < 0 || (des_col + j) > (cols-1)) return 0;
-    int counter=0, score=0;
-    for(int ii=0; ii < 4; ii++)
-    {
-        counter += (int)game[des_row + i][des_col + j];
-        if(i < 0) i++;
-        else if(i > 0) i--;
-        if(j < 0) j++;
-        else if(j > 0) j--;
-    }
-    if(counter == 4*(int)playerTurn.symbol) score++;
-    return score;
-}
-
 int count_score(int rows, int cols, char game[][cols], int available_cols[], int select_cols[], int totMoves, player playerTurn)
 {
-    int score=0;
+    int counter=0, score=0;
     int des_col = select_cols[totMoves-1] - 1;
     int des_row = available_cols[des_col];
-    score += count_4(rows, cols, game, des_row, des_col, playerTurn, 0, 3);
-    score += count_4(rows, cols, game, des_row, des_col, playerTurn, 0, -3);
-    score += count_4(rows, cols, game, des_row, des_col, playerTurn, 3, 0);  //->all possiple dimension for connect4
-    score += count_4(rows, cols, game, des_row, des_col, playerTurn, 3, 3);
-    score += count_4(rows, cols, game, des_row, des_col, playerTurn, -3, -3);
-    score += count_4(rows, cols, game, des_row, des_col, playerTurn, -3, 3);
-    score += count_4(rows, cols, game, des_row, des_col, playerTurn, 3, -3);
+   //horizental
+    for(int i=-3; i<=3; i++)
+    {
+        if(playerTurn.symbol == game[des_row][des_col + i]) counter++;
+        else{
+            if(counter >= 4) score += (counter-4)+1;
+            counter=0;
+        }
+    }
+    if(counter >= 4) score += (counter-4)+1;
+    counter=0;
+    //vertical
+    for(int i=0; i<=3; i++)
+    {
+        if(playerTurn.symbol == game[des_row + i][des_col]) counter++;
+        else{
+            if(counter >= 4) score += (counter-4)+1;
+            counter=0;
+        }
+    }
+    if(counter >= 4) score += (counter-4)+1;
+    counter=0;
+    //main diagonal
+    for(int i=-3; i<=3; i++)
+    {
+        if(playerTurn.symbol == game[des_row + i][des_col + i]) counter++;
+        else{
+            if(counter >= 4) score += (counter-4)+1;
+            counter=0;
+        }
+    }
+    if(counter >= 4) score += (counter-4)+1;
+    counter=0;
+    //back diagonal
+     for(int i=-3; i<=3; i++)
+    {
+        if(playerTurn.symbol == game[des_row - i][des_col + i]) counter++;
+        else{
+            if(counter >= 4) score += (counter-4)+1;
+            counter=0;
+        }
+    }
+    if(counter >= 4) score += (counter-4)+1;
+
     return score;
 }
