@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <string.h>
 #define RED     "\x1b[31m"
 #define GREEN   "\x1b[32m"
 #define YELLOW  "\x1b[33m"
@@ -9,7 +9,112 @@
 #define CYAN    "\x1b[36m"
 #define RESET   "\x1b[0m"
 #define color
+// global values for height,Highscore,width,numberof fails
+ extern int heightG,HighscoreG,widthG,NumOfaouls;
 
+ int Checkoccur(char *SUbword,char *word)
+{
+  int check=-1;
+    for(int i =0 ;word[i]!='\0';i++)
+        {
+         check=1;
+            for(int j=0;SUbword[j]!='\0';j++ )
+            {
+               if(word[i+j]!=SUbword[j])
+               {
+                  check=-1;
+                   break;
+               }
+            }
+            if (check==1) return i;
+        }
+        return check;
+}
+
+void Rxml()
+{
+  int FirstConi,Lastconvi;
+
+
+
+ char c;
+ //AllChars represents the all domain which contains all Configurations
+ char AllChars[10000]={'0'};//set the initial values to 0 to avoid garbage values//we can use maxmimum 200 or higher
+ char hamada[]="</Highscores>";
+ int len=0; //represents the length of used values
+ //open file and read all chars and put it into AllChars
+ FILE *xml ;
+ char filepath[500];
+ if(NumOfaouls==0)strcpy(filepath,"readXML.xml");
+ else{printf("Enter the file correct path:\n");gets(filepath);}
+ int x=0;
+ if((xml=fopen(filepath,"r"))!=NULL)
+ {
+   while((c=fgetc(xml))!=EOF)
+    {
+     if(c !=' ' && c != '\n' && c!='\t' &&c!='\r')
+     {
+       AllChars[x]=c;
+       len++;
+       x++;
+     }
+    }
+ }
+ 
+ FirstConi=Checkoccur("<Configurations>",AllChars);
+ Lastconvi=Checkoccur("</Configurations>",AllChars);
+ int newi=(FirstConi+16),Finali=(Lastconvi);//16 is the number of chars in <Configurations>
+
+ //creat a new array contains every thing between <Configurations> and </Configurations>
+ char newarray[200]={'0'};
+ int len2=(Lastconvi-FirstConi-16);
+ for(int i=0;i<len2;i++)newarray[i]=AllChars[i+newi];
+
+ //for(int i=0;i<len;i++)printf("%c",newarray[i]);
+ int Fheight=Checkoccur("<Height>",newarray),h=0;
+ int Lheight=Checkoccur("</Height>",newarray);
+ int Fwidth=Checkoccur("<Width>",newarray),w=0;
+ int Lwidth=Checkoccur("</Width>",newarray);
+ int Fscore=Checkoccur("<Highscores>",newarray),s=0;
+ int Lscore=Checkoccur("</Highscores>",newarray);
+ //get height from Xml
+  for(int i=(Fheight+8);i<Lheight;i++)
+  {
+    if((int)newarray[i]<48||(int)newarray[i]>57){h=-1;break;}
+    h=h*10+(newarray[i]-'0');
+  }
+  //get width from Xml
+  for(int i=(Fwidth+7);i<Lwidth;i++)
+  {
+    if((int)newarray[i]<48||(int)newarray[i]>57){w=-1;break;}
+    w=w*10+(newarray[i]-'0');
+  }
+  //get highscore from xml
+  for(int i=(Fscore+12);i<Lscore;i++)
+  {
+    if((int)newarray[i]<48||(int)newarray[i]>57){s=-1;break;}
+    s=s*10+(newarray[i]-'0');
+  }
+//check of all values
+ if(FirstConi==-1||Lastconvi==-1|| w==-1 || h==-1 || s==-1 || Fheight==-1 || Lheight==-1||Fwidth==-1||Lwidth==-1||Fscore==-1|| Lscore==-1)
+ {
+    printf("something goes wrong!\n");
+    if(NumOfaouls<3)
+    {
+     NumOfaouls++;
+     fclose(xml);
+      Rxml();
+    }
+    else 
+    {
+    printf("you failed 3 times!! what an idiot!.all set to default height=9 width=7 tophighscore=10\n");
+    heightG=9;widthG=7;HighscoreG=10;
+    }
+ }
+ else{heightG=h;widthG=w;HighscoreG=s;}
+
+ fclose(xml);
+}
 typedef struct{
     char name[100];
     char symbol;

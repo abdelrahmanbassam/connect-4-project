@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <time.h>
 #include "function.h"
+// global values for height,Highscore,width,numberof fails
+int heightG,HighscoreG,widthG,NumOfaouls=0;
+
 
 int main()
 {
@@ -13,7 +16,10 @@ int main()
     first.symbol = 'X', second.symbol = 'O';
     first.numOfMove = 0; second.numOfMove = 0;
     first.score = 0, second.score = 0;
-    scanf("%d %d", &width, &hight);
+    Rxml();
+    width=widthG;hight=heightG;
+    printf(MAGENTA "GAME  HEIGHT IS %d GAME WIDTH IS %d \n ",hight,width);
+
     int rows=hight, cols=width;
     int available_cols[cols], select_cols[rows*cols], undo_moves[rows*cols][2];
     char game[rows][cols];
