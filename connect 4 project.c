@@ -1,9 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "function.h"
 
 int main()
 {
+    system("color 00");
+    time_t gameTime = time(NULL);
     int totMoves=0, nofUndo=0;
     int hight, width;
     player first, second;
@@ -24,7 +27,8 @@ int main()
             inGame_menu(rows, cols, game, undo_moves, available_cols, select_cols, &nofUndo, &totMoves, &second, &first);
         }
             scan_game(rows, cols, game);
-            printf("totMoves = %d\nfirst score = %d ,second score = %d\n", totMoves, first.score, second.score);
+            printf(MAGENTA "Time = %d:%d ,Number of Moves = %d\n", (time(NULL)-gameTime)/60, (time(NULL)-gameTime)%60, totMoves);
+            printf(CYAN "SCORE OF 1ST PLAYER = %d,  " RED "SCORE OF 2ND PLAYER = %d\n" RESET, first.score, second.score);
     }
     return 0;
 }

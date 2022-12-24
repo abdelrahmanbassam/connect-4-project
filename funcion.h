@@ -1,9 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define RED     "\x1b[31m"
+#define GREEN   "\x1b[32m"
+#define YELLOW  "\x1b[33m"
+#define BLUE    "\x1b[34m"
+#define MAGENTA "\x1b[35m"
+#define CYAN    "\x1b[36m"
+#define RESET   "\x1b[0m"
+#define color
+
 typedef struct{
     char name[100];
     char symbol;
+    //char color;
     int score;
     int numOfMove;
 }player;
@@ -16,14 +26,21 @@ typedef struct{
 
 void scan_game(int rows, int cols, char game[][cols])
 {
+    for(int i=0; i<cols; i++)
+        printf("  %d ", i+1);
+    printf("\n");
     for(int i=0; i<rows; i++)
     {
-        for(int j=0; j<cols; j++)
-            printf("|%c", game[i][j]);
-        printf("|\n");
+        for(int j=0; j<cols; j++)                             //remmeber -> player.color (any player can choose the color he wants)
+        {
+            printf(GREEN "|");
+            if(game[i][j] == 'X') printf(CYAN " %c ", game[i][j]);
+            else printf(RED " %c ", game[i][j]);
+        }
+        printf(GREEN "|\n");
         for(int k=0; k<cols; k++)
-            printf("--");
-        printf("-\n");
+            printf("----");
+        printf("-\n" RESET);
     }
 }
 
@@ -42,14 +59,12 @@ void creat_game(int rows, int cols, char game[][cols], int available_cols[], int
     }
 }
 
-void start_game(int rows, int cols, char game[][cols])
-{
-}
+//void start_game(int rows, int cols, char game[][cols])
 
 void inGame_menu(int rows, int cols, char game[][cols], int undo_moves[][2], int available_cols[], int select_cols[], int *nofUndo, int *totMove, player *playerTurn, player *other)
 {
     int select_menu;
-    printf("Enter -1 for in Game menu\n");
+    printf(YELLOW "Enter -1 for in Game menu\n");
     scanf("%d", &select_menu);
     if(select_menu != -1){
         make_move(rows, cols, game, available_cols, select_cols, totMove, select_menu, playerTurn);
@@ -59,7 +74,7 @@ void inGame_menu(int rows, int cols, char game[][cols], int undo_moves[][2], int
                 undo_moves[i][j] = 0;
         *nofUndo = 0;
     }else{
-        printf("Enter \n1 for a move \n2 for undo \n3 for redo \n4 for save \n5 for quit\n");
+        printf(YELLOW "Enter \n1 for a move \n2 for undo \n3 for redo \n4 for save \n5 for quit\n");
         scanf("%d", &select_menu);
         switch(select_menu)
         {
@@ -143,46 +158,54 @@ int count_score(int rows, int cols, char game[][cols], int available_cols[], int
    //horizental
     for(int i=-3; i<=3; i++)
     {
+        //if(des_col+i >= 0 && des_col+i < cols)
+        while(des_col+i < 0) i++;
+        if(des_col+i > cols-1) break;
         if(playerTurn.symbol == game[des_row][des_col + i]) counter++;
         else{
-            if(counter >= 4) score += (counter-4)+1;
+            if(counter >= 4) score += counter-3;
             counter=0;
-        }
+            }
     }
-    if(counter >= 4) score += (counter-4)+1;
+    if(counter >= 4) score += counter-3;
     counter=0;
     //vertical
     for(int i=0; i<=3; i++)
     {
+        if(des_row+i > rows-1) break;
         if(playerTurn.symbol == game[des_row + i][des_col]) counter++;
         else{
-            if(counter >= 4) score += (counter-4)+1;
+            if(counter >= 4) score += counter-3;
             counter=0;
         }
     }
-    if(counter >= 4) score += (counter-4)+1;
+    if(counter >= 4) score += counter-3;
     counter=0;
     //main diagonal
     for(int i=-3; i<=3; i++)
     {
+        while(des_row+i < 0 || des_col+i < 0) i++;
+        if(des_row+i > rows-1 || des_col+i > cols-1) break;
         if(playerTurn.symbol == game[des_row + i][des_col + i]) counter++;
         else{
-            if(counter >= 4) score += (counter-4)+1;
+            if(counter >= 4) score += counter-3;
             counter=0;
         }
     }
-    if(counter >= 4) score += (counter-4)+1;
+    if(counter >= 4) score += counter-3;
     counter=0;
     //back diagonal
      for(int i=-3; i<=3; i++)
     {
+        while(des_row-i > rows-1 || des_col+i < 0) i++;  //-> prop here (alhamdulellah)
+        if(des_row-i > rows-1 || des_col+i > cols-1) break;
         if(playerTurn.symbol == game[des_row - i][des_col + i]) counter++;
         else{
-            if(counter >= 4) score += (counter-4)+1;
+            if(counter >= 4) score += counter-3;
             counter=0;
         }
     }
-    if(counter >= 4) score += (counter-4)+1;
+    if(counter >= 4) score += counter-3;
 
     return score;
 }
