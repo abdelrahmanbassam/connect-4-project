@@ -64,7 +64,7 @@ void creat_game(int rows, int cols, char game[][cols], int available_cols[], int
 void inGame_menu(int rows, int cols, char game[][cols], int undo_moves[][2], int available_cols[], int select_cols[], int *nofUndo, int *totMove, player *playerTurn, player *other)
 {
     int select_menu;
-    printf(YELLOW "Enter -1 for in Game menu\n");
+    printf(YELLOW "Enter the number of col (-1 for in-game menu)\n");
     scanf("%d", &select_menu);
     if(select_menu != -1){
         make_move(rows, cols, game, available_cols, select_cols, totMove, select_menu, playerTurn);
@@ -79,6 +79,8 @@ void inGame_menu(int rows, int cols, char game[][cols], int undo_moves[][2], int
         switch(select_menu)
         {
         case 1 :
+            printf(YELLOW "Enter the number of col\n");
+            scanf("%d", &select_menu);
             make_move(rows, cols, game, available_cols, select_cols, totMove, select_menu, playerTurn);
             playerTurn->score += count_score(rows, cols, game, available_cols, select_cols, *totMove, playerTurn);
             for(int i=0; i<*nofUndo; i++)
@@ -109,6 +111,7 @@ void inGame_menu(int rows, int cols, char game[][cols], int undo_moves[][2], int
 
 void make_move(int rows, int cols, char game[][cols], int available_cols[], int select_cols[], int *totMove, int nofcol, player playerTurn)
 {
+    //if(nofcol == -1) return inGame_menu(rows, cols, game, undo_movees, available_cols, select_cols, nofU)
     if(nofcol < 1 || nofcol > cols || available_cols[nofcol-1] == 0){
         printf("please, Enter a vaild nof col..\n");
         scanf("%d", &nofcol);

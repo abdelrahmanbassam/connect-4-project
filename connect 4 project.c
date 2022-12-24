@@ -22,8 +22,10 @@ int main()
     while(totMoves < (rows*cols))
     {
         if(totMoves%2 == 0){
+            printf(CYAN "1ST PLAYER TURN\n");
             inGame_menu(rows, cols, game, undo_moves, available_cols, select_cols, &nofUndo, &totMoves, &first, &second);
         }else{
+            printf(RED "2ND PLAYER TURN\n");
             inGame_menu(rows, cols, game, undo_moves, available_cols, select_cols, &nofUndo, &totMoves, &second, &first);
         }
             scan_game(rows, cols, game);
