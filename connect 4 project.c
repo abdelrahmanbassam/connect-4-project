@@ -19,7 +19,7 @@ int main()
     Rxml();
     width=widthG;hight=heightG;
     printf(MAGENTA "GAME  HEIGHT IS %d GAME WIDTH IS %d \n ",hight,width);
-
+    printf(YELLOW);
     int rows=hight, cols=width;
     int available_cols[cols], select_cols[rows*cols], undo_moves[rows*cols][2];
     char game[rows][cols];
