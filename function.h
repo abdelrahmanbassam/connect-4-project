@@ -46,7 +46,7 @@ void Rxml()
  FILE *xml ;
  char filepath[500];
  if(NumOfaouls==0)strcpy(filepath,"readXML.xml");
- else{printf("Enter the file correct path:\n");gets(filepath);}
+ else{printf(GREEN "Enter the file correct path:\n");gets(filepath);}
  int x=0;
  if((xml=fopen(filepath,"r"))!=NULL)
  {
@@ -98,7 +98,7 @@ void Rxml()
 //check of all values
  if(FirstConi==-1||Lastconvi==-1|| w==-1 || h==-1 || s==-1 || Fheight==-1 || Lheight==-1||Fwidth==-1||Lwidth==-1||Fscore==-1|| Lscore==-1)
  {
-    printf("something goes wrong!\n");
+    printf(RED "SOMETHING GOES WRONG!\n");
     if(NumOfaouls<3)
     {
      NumOfaouls++;
@@ -107,7 +107,7 @@ void Rxml()
     }
     else 
     {
-    printf("you failed 3 times!! what an idiot!.all set to default height=9 width=7 tophighscore=10\n");
+    printf(RED"YOU FAILED 3 TIMES!! WHAT AN IDIOT!.ALL SET TO DEFAULT HEIGHT=9 WIDTH=7 TOPHIGHSCORE=10\n");
     heightG=9;widthG=7;HighscoreG=10;
     }
  }
