@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <string.h>
 #define RED     "\x1b[31m"
 #define GREEN   "\x1b[32m"
@@ -11,6 +12,138 @@
 #define color
 // global values for height,Highscore,width,numberof fails
  extern int heightG,HighscoreG,widthG,NumOfaouls;
+
+typedef struct{
+    char name[100];
+    char symbol;
+    //char color;
+    int score;
+    int numOfMove;
+    int gamewidth;
+    int gameheight;
+}player;
+
+typedef struct{
+    int hight;
+    int width;
+    int highScores;
+}config;
+ 
+void swapstruct(player *ar1,player *ar2)
+{
+player temp = *ar1;
+*ar1=*ar2;
+*ar2=temp;
+}
+
+//bubble sort struct
+void bubble_struct(player *arrayHighscore,int NumOplayers)
+{
+
+ for (int i = 0; i <NumOplayers-1; i++)
+ {
+    for (int j = 0; j<NumOplayers-1-i; j++)
+    {
+        if(arrayHighscore[j].score<arrayHighscore[j+1].score)
+        swapstruct(&arrayHighscore[j],&arrayHighscore[j+1]);
+    }
+ }
+}
+
+//return 1 if both are equals and 0 otw
+int CompareToLower(char str1[],char str2[])
+{
+ if (strlen(str1)!=strlen(str2))
+ return 0;
+
+ for(int i =0;str1[i];i++)
+ if(tolower(str1[i])!=tolower(str2[i]))
+ return 0;
+ 
+return 1;
+}
+
+//print highscore list in menu
+void MENU_HIGHSCORE()
+{
+    player printHscore[1000];
+    int size_of_AvH=0,rank=1,desiredHS=HighscoreG;//desired=parametar taken from XML file 
+    FILE *Sorterd_file;
+ if((Sorterd_file=fopen("highscores.bin","rb"))==NULL)
+ printf(RED"can't find the file!\n");
+ else
+ {
+  while(fread(&printHscore[size_of_AvH],sizeof(player),1,Sorterd_file)==1)
+  size_of_AvH++;
+
+   // print high score list format
+   if(size_of_AvH<desiredHS)
+   {
+   printf(RED"there are only %d available\n" ,size_of_AvH);desiredHS=size_of_AvH;
+   }
+   printf(BLUE"RANK  NAME             symbol  Game_Dim _H*W     SCORE\n\n");
+   for(int i=0;i<desiredHS;i++)
+   {
+    printf("%-5d%-20s%-7c%4d*%-10d%6d \n",rank,printHscore[i].name,printHscore[i].symbol,printHscore[i].gameheight,printHscore[i].gamewidth,printHscore[i].score);
+    if(printHscore[i].score!=printHscore[i+1].score)
+     rank++;
+   }
+ }
+ fclose(Sorterd_file);
+}
+
+//add after ending the game and show player rank
+void END_sortandstorge(player player1)
+{
+ printf(GREEN"%s's score : %d\n",player1.name,player1.score);
+
+ int check=0,NumOplayers=0;
+ player arrayHighscore[1000];
+ FILE *highScadd;
+ //assign the highscores into array to know the numberofplayers and to order them according to score
+ if((highScadd=fopen("highscores.bin","a+b"))==NULL)
+ printf(RED"can't find the file!\n");
+ else
+ {
+ while(fread(&arrayHighscore[NumOplayers],sizeof(player),1,highScadd)==1)
+ {
+   if(CompareToLower(player1.name,arrayHighscore[NumOplayers].name))
+    {
+       if(arrayHighscore[NumOplayers].score<=player1.score)
+        arrayHighscore[NumOplayers]=player1;
+         check=1;
+    }
+    NumOplayers++;
+ }
+ if(check==0)
+ {
+   fwrite(&player1,sizeof(player),1,highScadd);
+   arrayHighscore[NumOplayers]=player1;
+   NumOplayers++;
+ }
+ bubble_struct(arrayHighscore,NumOplayers);
+ 
+ //look for rank for player1
+ for(int i=0;i<NumOplayers;i++)
+ {
+ //printf("%s %c %d\n ",arrayHighscore[i].name,arrayHighscore[i].symbol,arrayHighscore[i].score);
+ if(CompareToLower(player1.name,arrayHighscore[i].name))
+ printf(GREEN"%s's RANK:%d\n",player1.name,i+1);
+ }
+
+ fclose(highScadd);
+ 
+ //save sorted array into file 
+ FILE *savesorted;
+ savesorted=fopen("highscores.bin","wb");
+ for (int i= 0; i <NumOplayers ; i++)
+    fwrite(&arrayHighscore[i],sizeof(player),1,savesorted);
+  
+  
+ fclose(savesorted);
+ 
+  }
+ }
 
  int Checkoccur(char *SUbword,char *word)
 {
@@ -115,19 +248,6 @@ void Rxml()
 
  fclose(xml);
 }
-typedef struct{
-    char name[100];
-    char symbol;
-    //char color;
-    int score;
-    int numOfMove;
-}player;
-
-typedef struct{
-    int hight;
-    int width;
-    int highScores;
-}config;
 
 void scan_game(int rows, int cols, char game[][cols])
 {

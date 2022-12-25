@@ -17,6 +17,9 @@ int main()
     first.numOfMove = 0; second.numOfMove = 0;
     first.score = 0, second.score = 0;
     Rxml();
+    first.gameheight=heightG, second.gameheight=heightG;
+    first.gamewidth=widthG, second.gamewidth=width;
+    strcpy(first.name,"mourad");strcpy(second.name,"bassam");;// later add start_New_game option and get all informations from user 
     width=widthG;hight=heightG;
     printf(MAGENTA "GAME  HEIGHT IS %d GAME WIDTH IS %d \n ",hight,width);
     printf(YELLOW);
@@ -39,9 +42,10 @@ int main()
             printf(CYAN "SCORE OF 1ST PLAYER = %d,  " RED "SCORE OF 2ND PLAYER = %d\n" RESET, first.score, second.score);
     }
     printf(YELLOW "GAME OVER\t");
-    if(first.score > second.score) printf(CYAN "1ST PLAYER IS THE WINNER !!" RESET);
-    else if(first.score < second.score) printf(RED "2ND PLAYER IS THE WINNER !!" RESET);
-    else printf(YELLOW "BOTH OF YOU ARE A WINNER !!" RESET);
 
+    if(first.score > second.score){ printf(CYAN "1ST PLAYER IS THE WINNER !!\n" RESET); END_sortandstorge(first);}
+    else if(first.score < second.score){ printf(RED "2ND PLAYER IS THE WINNER !!\n" RESET);END_sortandstorge(second);} 
+    else{ printf(YELLOW "BOTH OF YOU ARE A WINNER !!\n" RESET);END_sortandstorge(first);END_sortandstorge(second);  }
+     MENU_HIGHSCORE();
     return 0;
 }
