@@ -46,7 +46,7 @@ void Rxml()
  FILE *xml ;
  char filepath[500];
  if(NumOfaouls==0)strcpy(filepath,"readXML.xml");
- else{printf(GREEN "Enter the file correct path:\n");gets(filepath);}
+ else{printf("Enter the file correct path:\n");gets(filepath);}
  int x=0;
  if((xml=fopen(filepath,"r"))!=NULL)
  {
@@ -60,7 +60,7 @@ void Rxml()
      }
     }
  }
- 
+
  FirstConi=Checkoccur("<Configurations>",AllChars);
  Lastconvi=Checkoccur("</Configurations>",AllChars);
  int newi=(FirstConi+16),Finali=(Lastconvi);//16 is the number of chars in <Configurations>
@@ -98,16 +98,16 @@ void Rxml()
 //check of all values
  if(FirstConi==-1||Lastconvi==-1|| w==-1 || h==-1 || s==-1 || Fheight==-1 || Lheight==-1||Fwidth==-1||Lwidth==-1||Fscore==-1|| Lscore==-1)
  {
-    printf(RED "SOMETHING GOES WRONG!\n");
+    printf("something goes wrong!\n");
     if(NumOfaouls<3)
     {
      NumOfaouls++;
      fclose(xml);
       Rxml();
     }
-    else 
+    else
     {
-    printf(RED"YOU FAILED 3 TIMES!! WHAT AN IDIOT!.ALL SET TO DEFAULT HEIGHT=9 WIDTH=7 TOPHIGHSCORE=10\n");
+    printf("you failed 3 times!! what an idiot!.all set to default height=9 width=7 tophighscore=10\n");
     heightG=9;widthG=7;HighscoreG=10;
     }
  }
@@ -166,66 +166,66 @@ void creat_game(int rows, int cols, char game[][cols], int available_cols[], int
 
 //void start_game(int rows, int cols, char game[][cols])
 
-void inGame_menu(int rows, int cols, char game[][cols], int undo_moves[][2], int available_cols[], int select_cols[], int *nofUndo, int *totMove, player *playerTurn, player *other)
+void startGame(int rows, int cols, char game[][cols], int undo_moves[][2], int available_cols[], int select_cols[], int *nofUndo, int *totMove, player *playerTurn, player *other)
 {
-    int select_menu;
-    printf(YELLOW "Enter the number of col (-1 for in-game menu)\n");
-    scanf("%d", &select_menu);
-    if(select_menu != -1){
+    char select_menu[10];
+    printf(YELLOW "Enter the number of col (m for in-game menu)\n");
+    scanf("%s", &select_menu);
+    if(tolower(select_menu[0]) == 'm')
+    {
+            printf(YELLOW "Enter \nc for a countinue \nu for undo \nr for redo \ns for save \ne for quit\n");
+            scanf("%s", select_menu);
+
+        switch(tolower(select_menu[0]))
+        {
+        case 'c' :
+            startGame(rows, cols, game, undo_moves, available_cols, select_cols, nofUndo, totMove, playerTurn, other);
+            break;
+        case 'u' :
+            if(*totMove <= 0){
+                startGame(rows, cols, game, undo_moves, available_cols, select_cols, nofUndo, totMove, playerTurn, other);
+                break;
+            }
+            other->score -= count_score(rows, cols, game, available_cols, select_cols, *totMove, other);
+            undo(rows, cols, game, nofUndo, totMove, select_cols, available_cols, undo_moves);
+            break;
+        case 'r' :
+            if(*nofUndo <= 0){
+                startGame(rows, cols, game, undo_moves, available_cols, select_cols, nofUndo, totMove, playerTurn, other);
+                break;
+            }
+            redo(rows, cols, game, nofUndo, totMove, select_cols, available_cols, undo_moves, playerTurn, other);
+            playerTurn->score += count_score(rows, cols, game, available_cols, select_cols, *totMove, playerTurn);
+            break;
+        case 's' :
+            //save
+        case 'e' :
+            //exit
+            break;
+        default  :  startGame(rows, cols, game, undo_moves, available_cols, select_cols, nofUndo, totMove, playerTurn, other);
+        }
+    }else{
         make_move(rows, cols, game, available_cols, select_cols, totMove, select_menu, playerTurn);
         playerTurn->score += count_score(rows, cols, game, available_cols, select_cols, *totMove, playerTurn);
         for(int i=0; i<*nofUndo; i++)
             for(int j=0; j<2; j++)
                 undo_moves[i][j] = 0;
         *nofUndo = 0;
-    }else{
-        printf(YELLOW "Enter \n1 for a move \n2 for undo \n3 for redo \n4 for save \n5 for quit\n");
-        scanf("%d", &select_menu);
-        switch(select_menu)
-        {
-        case 1 :
-            printf(YELLOW "Enter the number of col\n");
-            scanf("%d", &select_menu);
-            make_move(rows, cols, game, available_cols, select_cols, totMove, select_menu, playerTurn);
-            playerTurn->score += count_score(rows, cols, game, available_cols, select_cols, *totMove, playerTurn);
-            for(int i=0; i<*nofUndo; i++)
-                for(int j=0; j<2; j++)
-                    undo_moves[i][j] = 0;
-            *nofUndo = 0;
-            break;
-        case 2 :
-            if(*totMove <= 0)  return inGame_menu(rows, cols, game, undo_moves, available_cols, select_cols, nofUndo, totMove, playerTurn, other);
-            other->score -= count_score(rows, cols, game, available_cols, select_cols, *totMove, other);
-            undo(rows, cols, game, nofUndo, totMove, select_cols, available_cols, undo_moves);
-            break;
-        case 3 :
-            if(*nofUndo <= 0)   return inGame_menu(rows, cols, game, undo_moves, available_cols, select_cols, nofUndo, totMove, playerTurn, other);
-            redo(rows, cols, game, nofUndo, totMove, select_cols, available_cols, undo_moves, playerTurn, other);
-            playerTurn->score += count_score(rows, cols, game, available_cols, select_cols, *totMove, playerTurn);
-            break;
-        case 4 :
-            //save
-        case 5 :
-            //quit
-            break;
-        default :
-            break;
-        }
     }
 }
 
-void make_move(int rows, int cols, char game[][cols], int available_cols[], int select_cols[], int *totMove, int nofcol, player playerTurn)
+void make_move(int rows, int cols, char game[][cols], int available_cols[], int select_cols[], int *totMove, char select_menu[], player playerTurn)
 {
-    //if(nofcol == -1) return inGame_menu(rows, cols, game, undo_movees, available_cols, select_cols, nofU)
-    if(nofcol < 1 || nofcol > cols || available_cols[nofcol-1] == 0){
-        printf("please, Enter a vaild nof col..\n");
-        scanf("%d", &nofcol);
-        return make_move(rows, cols, game, available_cols, select_cols, totMove, nofcol, playerTurn);
-    }else{
+    int nofcol = atoi(select_menu);
+    if(nofcol >= 1 && nofcol <= cols && available_cols[nofcol-1] > 0){
         game[available_cols[nofcol-1]-1][nofcol-1] = playerTurn.symbol;
         available_cols[nofcol-1]--;
         select_cols[*totMove] = nofcol;
         playerTurn.numOfMove++, *totMove+=1;
+    }else{
+        printf("please, Enter a vaild nof col..\n");
+        scanf("%s", select_menu);
+        make_move(rows, cols, game, available_cols, select_cols, totMove, select_menu, playerTurn);
     }
     return 0;
 }
