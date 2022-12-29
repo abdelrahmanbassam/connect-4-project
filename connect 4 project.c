@@ -6,8 +6,6 @@
 int heightG,HighscoreG,widthG,NumOfaouls=0;
 
 
-//ndkndkkdcndck
-
 int main()
 {
     system("color 00");
