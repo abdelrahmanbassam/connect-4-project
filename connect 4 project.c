@@ -1,51 +1,41 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "function.h"
+#include "C:\Users\mourad mahgoub\OneDrive\Desktop\c _ tottrials\connect4.2\finctions2.h"
+//#include "Rxml2.h"
+
 // global values for height,Highscore,width,numberof fails
 int heightG,HighscoreG,widthG,NumOfaouls=0;
 
-
 int main()
 {
-    system("color 00");
-    time_t gameTime = time(NULL);
-    int totMoves=0, nofUndo=0;
-    int hight, width;
+    struct tool game;
     player first, second;
+    int hight, width;
+
+    short int available_cols[100], select_cols[100*100];
+   game.available_cols = available_cols;
+   game.select_cols = select_cols;
+   //game.undo_moves = undo_moves;
+
+   game.first = &first, game.second = &second;
+    //board game;
+    scanf("%d %d", &game.rows, &game.cols);
+    strcpy(first.name, "FIRST"), strcpy(second.name, "SECOND");
     first.symbol = 'X', second.symbol = 'O';
-    first.numOfMove = 0; second.numOfMove = 0;
+    system("color 00");
+   // time_t gameTime = time(NULL);
+    //first.numOfMove = 0; second.numOfMove = 0;
     first.score = 0, second.score = 0;
-    Rxml();
-    first.gameheight=heightG, second.gameheight=heightG;
-    first.gamewidth=widthG, second.gamewidth=width;
-    strcpy(first.name,"mourad");strcpy(second.name,"bassam");;// later add start_New_game option and get all informations from user 
-    width=widthG;hight=heightG;
-    printf(MAGENTA "GAME  HEIGHT IS %d GAME WIDTH IS %d \n ",hight,width);
+    game.total_moves =0;
+    //Rxml();
+    //game.cols=widthG, game.rows=heightG;
+    //printf(MAGENTA "GAME  HEIGHT IS %d GAME WIDTH IS %d \n ",hight,width);
     printf(YELLOW);
-    int rows=hight, cols=width;
-    int available_cols[cols], select_cols[rows*cols], undo_moves[rows*cols][2];
-    char game[rows][cols];
-    creat_game(rows, cols, game, available_cols, select_cols, undo_moves);
+    creat_game(&game);
+    main_menu(&game);
 
-    while(totMoves < (rows*cols))
-    {
-        if(totMoves%2 == 0){
-            printf(CYAN "1ST PLAYER TURN\n");
-            startGame(rows, cols, game, undo_moves, available_cols, select_cols, &nofUndo, &totMoves, &first, &second);
-        }else{
-            printf(RED "2ND PLAYER TURN\n");
-            startGame(rows, cols, game, undo_moves, available_cols, select_cols, &nofUndo, &totMoves, &second, &first);
-        }
-            scan_game(rows, cols, game);
-            printf(MAGENTA "Time = %d:%d ,Number of Moves = %d\n", (time(NULL)-gameTime)/60, (time(NULL)-gameTime)%60, totMoves);
-            printf(CYAN "SCORE OF 1ST PLAYER = %d,  " RED "SCORE OF 2ND PLAYER = %d\n" RESET, first.score, second.score);
-    }
-    printf(YELLOW "GAME OVER\t");
+    //MENU_HIGHSCORE();
 
-    if(first.score > second.score){ printf(CYAN "1ST PLAYER IS THE WINNER !!\n" RESET); END_sortandstorge(first);}
-    else if(first.score < second.score){ printf(RED "2ND PLAYER IS THE WINNER !!\n" RESET);END_sortandstorge(second);} 
-    else{ printf(YELLOW "BOTH OF YOU ARE A WINNER !!\n" RESET);END_sortandstorge(first);END_sortandstorge(second);  }
-     MENU_HIGHSCORE();
     return 0;
 }
