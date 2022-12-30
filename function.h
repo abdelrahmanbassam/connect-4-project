@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
-#include <string.h>
+#include <time.h>
+
 #define RED     "\x1b[31m"
 #define GREEN   "\x1b[32m"
 #define YELLOW  "\x1b[33m"
@@ -9,387 +9,348 @@
 #define MAGENTA "\x1b[35m"
 #define CYAN    "\x1b[36m"
 #define RESET   "\x1b[0m"
-#define color
+
 // global values for height,Highscore,width,numberof fails
- extern int heightG,HighscoreG,widthG,NumOfaouls;
+//int heightG,HighscoreG,widthG,NumOfaouls=0;
 
 typedef struct{
-    char name[100];
+    char name[20];
     char symbol;
-    //char color;
-    int score;
-    int numOfMove;
-    int gamewidth;
-    int gameheight;
+    short int score;
+    //short int numOfMove;
 }player;
 
-typedef struct{
-    int hight;
-    int width;
-    int highScores;
-}config;
- 
-void swapstruct(player *ar1,player *ar2)
-{
-player temp = *ar1;
-*ar1=*ar2;
-*ar2=temp;
-}
+struct tool{
+    short int rows, cols, total_moves, nofUndo, high_scores, mode, level;
+    time_t gameTime;
+    short int *available_cols, *select_cols, undo_moves[100*100][2];  //rembeber to make select_cols an array not a pointer to save it
+    player *first, *second;
+    char board[100][100];
+};
 
-//bubble sort struct
-void bubble_struct(player *arrayHighscore,int NumOplayers)
+int main_menu(struct tool * game)
 {
-
- for (int i = 0; i <NumOplayers-1; i++)
- {
-    for (int j = 0; j<NumOplayers-1-i; j++)
-    {
-        if(arrayHighscore[j].score<arrayHighscore[j+1].score)
-        swapstruct(&arrayHighscore[j],&arrayHighscore[j+1]);
+    char choice[10];
+    printf("Hello, choose the game mode..\n1) Start new game\n2) Load a game\n3) View top players\n4) Quit\n");
+    scanf("%s", &choice);
+    while(atoi(choice) < 1 || atoi(choice) > 4){
+        printf("Plaese, Enter a valid number mode..\n");
+        scanf("%s", &choice);
     }
- }
-}
-
-//return 1 if both are equals and 0 otw
-int CompareToLower(char str1[],char str2[])
-{
- if (strlen(str1)!=strlen(str2))
- return 0;
-
- for(int i =0;str1[i];i++)
- if(tolower(str1[i])!=tolower(str2[i]))
- return 0;
- 
-return 1;
-}
-
-//print highscore list in menu
-void MENU_HIGHSCORE()
-{
-    player printHscore[1000];
-    int size_of_AvH=0,rank=1,desiredHS=HighscoreG;//desired=parametar taken from XML file 
-    FILE *Sorterd_file;
- if((Sorterd_file=fopen("highscores.bin","rb"))==NULL)
- printf(RED"can't find the file!\n");
- else
- {
-  while(fread(&printHscore[size_of_AvH],sizeof(player),1,Sorterd_file)==1)
-  size_of_AvH++;
-
-   // print high score list format
-   if(size_of_AvH<desiredHS)
-   {
-   printf(RED"there are only %d available\n" ,size_of_AvH);desiredHS=size_of_AvH;
-   }
-   printf(BLUE"RANK  NAME             symbol  Game_Dim _H*W     SCORE\n\n");
-   for(int i=0;i<desiredHS;i++)
-   {
-    printf("%-5d%-20s%-7c%4d*%-10d%6d \n",rank,printHscore[i].name,printHscore[i].symbol,printHscore[i].gameheight,printHscore[i].gamewidth,printHscore[i].score);
-    if(printHscore[i].score!=printHscore[i+1].score)
-     rank++;
-   }
- }
- fclose(Sorterd_file);
-}
-
-//add after ending the game and show player rank
-void END_sortandstorge(player player1)
-{
- printf(GREEN"%s's score : %d\n",player1.name,player1.score);
-
- int check=0,NumOplayers=0;
- player arrayHighscore[1000];
- FILE *highScadd;
- //assign the highscores into array to know the numberofplayers and to order them according to score
- if((highScadd=fopen("highscores.bin","a+b"))==NULL)
- printf(RED"can't find the file!\n");
- else
- {
- while(fread(&arrayHighscore[NumOplayers],sizeof(player),1,highScadd)==1)
- {
-   if(CompareToLower(player1.name,arrayHighscore[NumOplayers].name))
+    switch(atoi(choice))
     {
-       if(arrayHighscore[NumOplayers].score<=player1.score)
-        arrayHighscore[NumOplayers]=player1;
-         check=1;
+    case 1 :    start_game(game);
+        break;
+    case 2 :    //load();
+        break;
+    case 3 :    //scan_highScores();
+        break;
+    case 4 :    return 0;
+        break;
     }
-    NumOplayers++;
- }
- if(check==0)
- {
-   fwrite(&player1,sizeof(player),1,highScadd);
-   arrayHighscore[NumOplayers]=player1;
-   NumOplayers++;
- }
- bubble_struct(arrayHighscore,NumOplayers);
- 
- //look for rank for player1
- for(int i=0;i<NumOplayers;i++)
- {
- //printf("%s %c %d\n ",arrayHighscore[i].name,arrayHighscore[i].symbol,arrayHighscore[i].score);
- if(CompareToLower(player1.name,arrayHighscore[i].name))
- printf(GREEN"%s's RANK:%d\n",player1.name,i+1);
- }
-
- fclose(highScadd);
- 
- //save sorted array into file 
- FILE *savesorted;
- savesorted=fopen("highscores.bin","wb");
- for (int i= 0; i <NumOplayers ; i++)
-    fwrite(&arrayHighscore[i],sizeof(player),1,savesorted);
-  
-  
- fclose(savesorted);
- 
-  }
- }
-
- int Checkoccur(char *SUbword,char *word)
-{
-  int check=-1;
-    for(int i =0 ;word[i]!='\0';i++)
-        {
-         check=1;
-            for(int j=0;SUbword[j]!='\0';j++ )
-            {
-               if(word[i+j]!=SUbword[j])
-               {
-                  check=-1;
-                   break;
-               }
-            }
-            if (check==1) return i;
-        }
-        return check;
 }
 
-void Rxml()
+int select_mode()
 {
-  int FirstConi,Lastconvi;
-
-
-
- char c;
- //AllChars represents the all domain which contains all Configurations
- char AllChars[10000]={'0'};//set the initial values to 0 to avoid garbage values//we can use maxmimum 200 or higher
- char hamada[]="</Highscores>";
- int len=0; //represents the length of used values
- //open file and read all chars and put it into AllChars
- FILE *xml ;
- char filepath[500];
- if(NumOfaouls==0)strcpy(filepath,"readXML.xml");
- else{printf("Enter the file correct path:\n");gets(filepath);}
- int x=0;
- if((xml=fopen(filepath,"r"))!=NULL)
- {
-   while((c=fgetc(xml))!=EOF)
-    {
-     if(c !=' ' && c != '\n' && c!='\t' &&c!='\r')
-     {
-       AllChars[x]=c;
-       len++;
-       x++;
-     }
+    char mode[10];
+    printf("What's the mode you want..\n1) 1 player mode (vs cpu)\n2) 2 players mode\n");
+    scanf("%s", &mode);
+    while(atoi(mode) != 1 && atoi(mode) != 2){
+        printf("Please, Enter a vaild number to choose the mode..\n");
+         scanf("%s", &mode);
     }
- }
+    return atoi(mode);
+}
 
- FirstConi=Checkoccur("<Configurations>",AllChars);
- Lastconvi=Checkoccur("</Configurations>",AllChars);
- int newi=(FirstConi+16),Finali=(Lastconvi);//16 is the number of chars in <Configurations>
 
- //creat a new array contains every thing between <Configurations> and </Configurations>
- char newarray[200]={'0'};
- int len2=(Lastconvi-FirstConi-16);
- for(int i=0;i<len2;i++)newarray[i]=AllChars[i+newi];
-
- //for(int i=0;i<len;i++)printf("%c",newarray[i]);
- int Fheight=Checkoccur("<Height>",newarray),h=0;
- int Lheight=Checkoccur("</Height>",newarray);
- int Fwidth=Checkoccur("<Width>",newarray),w=0;
- int Lwidth=Checkoccur("</Width>",newarray);
- int Fscore=Checkoccur("<Highscores>",newarray),s=0;
- int Lscore=Checkoccur("</Highscores>",newarray);
- //get height from Xml
-  for(int i=(Fheight+8);i<Lheight;i++)
-  {
-    if((int)newarray[i]<48||(int)newarray[i]>57){h=-1;break;}
-    h=h*10+(newarray[i]-'0');
-  }
-  //get width from Xml
-  for(int i=(Fwidth+7);i<Lwidth;i++)
-  {
-    if((int)newarray[i]<48||(int)newarray[i]>57){w=-1;break;}
-    w=w*10+(newarray[i]-'0');
-  }
-  //get highscore from xml
-  for(int i=(Fscore+12);i<Lscore;i++)
-  {
-    if((int)newarray[i]<48||(int)newarray[i]>57){s=-1;break;}
-    s=s*10+(newarray[i]-'0');
-  }
-//check of all values
- if(FirstConi==-1||Lastconvi==-1|| w==-1 || h==-1 || s==-1 || Fheight==-1 || Lheight==-1||Fwidth==-1||Lwidth==-1||Fscore==-1|| Lscore==-1)
- {
-    printf("something goes wrong!\n");
-    if(NumOfaouls<3)
-    {
-     NumOfaouls++;
-     fclose(xml);
-      Rxml();
-    }
+void start_game(struct tool * game)
+{
+    game->mode = select_mode();
+    if(game->mode == 1)
+        mode_1player(game);
     else
+        mode_2players(game);
+}
+int select_level()
+{
+    char level[10];
+    printf("What's level do you want ?\n1) Easy\n2) Medium\n3) Hard\n4) Super hard\n");
+    while(atoi(level) < 1 || atoi(level) > 4)
     {
-    printf("you failed 3 times!! what an idiot!.all set to default height=9 width=7 tophighscore=10\n");
-    heightG=9;widthG=7;HighscoreG=10;
+        printf("Please, Enter a vaild number to choose the level..\n");
+        scanf("%s", level);
     }
- }
- else{heightG=h;widthG=w;HighscoreG=s;}
-
- fclose(xml);
+    return atoi(level);
 }
 
-void scan_game(int rows, int cols, char game[][cols])
+
+void mode_1player(struct tool *game)
 {
-    for(int i=0; i<cols; i++)
+    game->level = select_level();
+    game->gameTime = time(NULL);
+    switch(game->level)
+    {
+        case 1 :  level_easy(game);
+            break;
+        case 2 :    level_medium(game);
+            break;
+        case 3 :    level_hard(game);
+            break;
+        case 4 :    level_supeHard(game);
+            break;
+    }
+  //  char select_menu[10];*/
+
+   /* scan_game(*game);
+     while(game->total_moves < (game->rows*game->cols))
+    {
+        if(game->total_moves%2 == 0){
+            scanf("%s", select_menu);
+            inGame_menu(game, select_menu);
+        }else{
+            sprintf(select_menu, "%d", (rand()%game->cols +1));
+            inGame_menu(game, select_menu);
+        }
+        scan_game(*game);
+    }
+    GameOver(game);*/
+
+
+}
+
+
+int level_easy(struct tool *game)
+{
+    srand(time(NULL));
+    char select_menu[10];
+
+    scan_game(*game);
+     while(game->total_moves < (game->rows*game->cols))
+    {
+        if(game->total_moves%2 == 0){
+            scanf("%s", select_menu);
+            inGame_menu(game, select_menu);
+        }else{
+            sprintf(select_menu, "%d", (rand()%game->cols +1));
+            inGame_menu(game, select_menu);
+        }
+        scan_game(*game);
+    }
+    GameOver(game);
+}
+
+int level_medium(struct tool *game)
+{
+    srand(time(NULL));
+    char select_menu[10];
+
+    scan_game(*game);
+     while(game->total_moves < (game->rows*game->cols))
+    {
+        if(game->total_moves%2 == 0){
+           /* scanf("%s", select_menu);
+            inGame_menu(game, select_menu);
+        }else{
+            sprintf(select_menu, "%d", );
+            inGame_menu(game, select_menu);
+        }*/
+        scan_game(*game);
+    }
+    GameOver(game);
+
+}
+}
+
+
+int level_hard(struct tool *game)
+{
+
+}
+
+int level_supeHard(struct tool *game)
+{
+
+}
+
+
+void mode_2players(struct tool *game)
+{
+    game->gameTime = time(NULL);
+    char select_menu[10];
+
+    scan_game(*game);
+     while(game->total_moves < (game->rows*game->cols))
+    {
+        scanf("%s", select_menu);
+        inGame_menu(game, select_menu);
+        scan_game(*game);
+    }
+    GameOver(game);
+}
+
+void scan_game(struct tool game)
+{
+    if(game.total_moves%2 == 0)
+        printf(CYAN "%s PLAYER TURN\n", game.first->name);
+    else
+        printf(RED "%s PLAYER TURN\n", game.second->name);
+
+    printf(MAGENTA "Time = %d:%d ,Number of Moves = %d\n", (time(NULL)-game.gameTime)/60, (time(NULL)-game.gameTime)%60, game.total_moves);
+    printf(CYAN "SCORE OF %s PLAYER = %d,  " RED "SCORE OF %s PLAYER = %d\n" RESET, game.first->name, game.first->score, game.second->name, game.second->score);
+
+    for(int i=0; i<game.cols; i++)
         printf("  %d ", i+1);
     printf("\n");
-    for(int i=0; i<rows; i++)
+    for(int i=0; i<game.rows; i++)
     {
-        for(int j=0; j<cols; j++)                             //remmeber -> player.color (any player can choose the color he wants)
+        for(int j=0; j<game.cols; j++)                             //remmeber -> player.color (any player can choose the color he wants)
         {
             printf(GREEN "|");
-            if(game[i][j] == 'X') printf(CYAN " %c ", game[i][j]);
-            else printf(RED " %c ", game[i][j]);
+            if(game.board[i][j] == 'X') printf(CYAN " %c ", game.board[i][j]);
+            else printf(RED " %c ", game.board[i][j]);
         }
         printf(GREEN "|\n");
-        for(int k=0; k<cols; k++)
+        for(int k=0; k<game.cols; k++)
             printf("----");
         printf("-\n" RESET);
     }
 }
 
-void creat_game(int rows, int cols, char game[][cols], int available_cols[], int select_cols[], int undo_moves[][2])
+void creat_game(struct tool *game)
 {
-    for(int i=0; i<rows; i++)
-        for(int j=0; j<cols; j++)
-            game[i][j] = ' ';
-    for(int i=0; i<cols; i++)
-            available_cols[i] = rows;
-    for(int i=0; i<(rows*cols); i++)
+    for(int i=0; i<game->rows; i++)
+        for(int j=0; j<game->cols; j++)
+            game->board[i][j] = ' ';
+    for(int i=0; i<game->cols; i++)
+            game->available_cols[i] = game->rows;
+    for(int i=0; i<(game->rows*game->cols); i++)
     {
-        select_cols[i] = 0;
+        game->select_cols[i] = 0;
         for(int j=0; j<2; j++)
-            undo_moves[i][j] = 0;
+            game->undo_moves[i][j] = 0;
     }
 }
 
-//void start_game(int rows, int cols, char game[][cols])
-
-void startGame(int rows, int cols, char game[][cols], int undo_moves[][2], int available_cols[], int select_cols[], int *nofUndo, int *totMove, player *playerTurn, player *other)
+int inGame_menu(struct tool *game, char select_menu[])
 {
-    char select_menu[10];
     printf(YELLOW "Enter the number of col (m for in-game menu)\n");
-    scanf("%s", &select_menu);
-    if(tolower(select_menu[0]) == 'm')
+    if(isdigit(select_menu[0])){
+        make_move(game, select_menu);
+        return 0;
+    }
+    switch(tolower(select_menu[0]))
     {
+        case 'm' :
             printf(YELLOW "Enter \nc for a countinue \nu for undo \nr for redo \ns for save \ne for quit\n");
-            scanf("%s", select_menu);
-
-        switch(tolower(select_menu[0]))
-        {
         case 'c' :
-            startGame(rows, cols, game, undo_moves, available_cols, select_cols, nofUndo, totMove, playerTurn, other);
             break;
         case 'u' :
-            if(*totMove <= 0){
-                startGame(rows, cols, game, undo_moves, available_cols, select_cols, nofUndo, totMove, playerTurn, other);
-                break;
+            if(game->total_moves == 0){
+                printf(YELLOW "There is no move to make undo\n");
+            }else{
+                undo(game);
+                if(game->mode == 1)
+                    undo(game);
             }
-            other->score -= count_score(rows, cols, game, available_cols, select_cols, *totMove, other);
-            undo(rows, cols, game, nofUndo, totMove, select_cols, available_cols, undo_moves);
             break;
         case 'r' :
-            if(*nofUndo <= 0){
-                startGame(rows, cols, game, undo_moves, available_cols, select_cols, nofUndo, totMove, playerTurn, other);
-                break;
-            }
-            redo(rows, cols, game, nofUndo, totMove, select_cols, available_cols, undo_moves, playerTurn, other);
-            playerTurn->score += count_score(rows, cols, game, available_cols, select_cols, *totMove, playerTurn);
+            if(game->nofUndo == 0)
+                printf(YELLOW "You can't make redo\n");
+            else
+                redo(game);
             break;
-        case 's' :
-            //save
-        case 'e' :
-            //exit
+        case 's' :  //save();
             break;
-        default  :  startGame(rows, cols, game, undo_moves, available_cols, select_cols, nofUndo, totMove, playerTurn, other);
-        }
-    }else{
-        make_move(rows, cols, game, available_cols, select_cols, totMove, select_menu, playerTurn);
-        playerTurn->score += count_score(rows, cols, game, available_cols, select_cols, *totMove, playerTurn);
-        for(int i=0; i<*nofUndo; i++)
-            for(int j=0; j<2; j++)
-                undo_moves[i][j] = 0;
-        *nofUndo = 0;
+        case 'e' :  //exit();
+            return -1;
     }
 }
 
-void make_move(int rows, int cols, char game[][cols], int available_cols[], int select_cols[], int *totMove, char select_menu[], player playerTurn)
+void make_move(struct tool *game, char select_menu[])
 {
+    player *playerTurn;
+    if(game->total_moves%2 == 0)
+        playerTurn = game->first;
+    else
+        playerTurn = game->second;
+
     int nofcol = atoi(select_menu);
-    if(nofcol >= 1 && nofcol <= cols && available_cols[nofcol-1] > 0){
-        game[available_cols[nofcol-1]-1][nofcol-1] = playerTurn.symbol;
-        available_cols[nofcol-1]--;
-        select_cols[*totMove] = nofcol;
-        playerTurn.numOfMove++, *totMove+=1;
-    }else{
-        printf("please, Enter a vaild nof col..\n");
-        scanf("%s", select_menu);
-        make_move(rows, cols, game, available_cols, select_cols, totMove, select_menu, playerTurn);
-    }
+    if(nofcol >= 1 && nofcol <= game->cols && game->available_cols[nofcol-1] > 0){
+        game->board[game->available_cols[nofcol-1]-1][nofcol-1] = playerTurn->symbol;
+        game->available_cols[nofcol-1]--;
+        game->select_cols[game->total_moves] = nofcol;
+        game->total_moves+=1;
+
+        playerTurn->score += count_score(game);
+        for(int i=0; i<game->nofUndo; i++)
+            for(int j=0; j<2; j++)
+                game->undo_moves[i][j] = 0;
+        game->nofUndo = 0;
+    }else printf("please, Enter a vaild nof col..\n");
     return 0;
 }
 
-
-void undo(int rows, int cols, char game[][cols], int *nofUndo, int *totMove, int select_cols[], int available_cols[], int undo_moves[][2])
+void undo(struct tool *game)
 {
+    player *other;
+    if(game->total_moves%2 == 1)
+        other = game->first;
+    else
+        other = game->second;
+
+    other->score -= count_score(game);
+
     int des_row, des_col;
-    des_col = select_cols[*totMove-1] - 1;
-    des_row = available_cols[des_col] ;
-    game[des_row][des_col] = ' ';
-    undo_moves[*nofUndo][0] = des_row;
-    undo_moves[*nofUndo][1] = des_col;
-    select_cols[*totMove-1] = 0;            // -> minus values by 1 && increas nofUndo by 1
-    available_cols[des_col]++;
-    *totMove-=1, *nofUndo+=1;
+    des_col = game->select_cols[game->total_moves-1] - 1;
+    des_row = game->available_cols[des_col] ;
+    game->board[des_row][des_col] = ' ';
+    game->undo_moves[game->nofUndo][0] = des_row;
+    game->undo_moves[game->nofUndo][1] = des_col;
+    game->select_cols[game->total_moves-1] = 0;            // -> minus values by 1 && increas nofUndo by 1
+    game->available_cols[des_col]++;
+    game->total_moves-=1, game->nofUndo+=1;
     return 0;
 }
 
-void redo(int rows, int cols, char game[][cols], int *nofUndo, int *totMove, int select_cols[], int available_cols[], int undo_moves[][2], player *playerTurn)
+void redo(struct tool *game)
 {
+    player * playerTurn;
+    if(game->total_moves%2 == 0)
+        playerTurn = game->first;
+    else
+        playerTurn = game->second;
+
     int des_row, des_col;
-    des_row = undo_moves[*nofUndo-1][0];
-    des_col = undo_moves[*nofUndo-1][1];
-    game[des_row][des_col] = playerTurn->symbol;
-    undo_moves[*nofUndo-1][0] = 0;
-    undo_moves[*nofUndo-1][1] = 0;
-    *totMove+=1, *nofUndo-=1;
-    select_cols[*totMove-1] = des_col+1;
-    available_cols[des_col]--;
+    des_row = game->undo_moves[game->nofUndo-1][0];
+    des_col = game->undo_moves[game->nofUndo-1][1];
+    game->board[des_row][des_col] = playerTurn->symbol;
+    game->undo_moves[game->nofUndo-1][0] = 0;
+    game->undo_moves[game->nofUndo-1][1] = 0;
+    game->total_moves+=1, game->nofUndo-=1;
+    game->select_cols[game->total_moves-1] = des_col+1;
+    game->available_cols[des_col]--;
+
+    playerTurn->score += count_score(game);
 }
 
-int count_score(int rows, int cols, char game[][cols], int available_cols[], int select_cols[], int totMoves, player playerTurn)
+int count_score(struct tool *game)
 {
+    player *playerTurn;
+    if(game->total_moves%2 == 1)
+        playerTurn = game->first;
+    else
+        playerTurn = game->second;
+
     int counter=0, score=0;
-    int des_col = select_cols[totMoves-1] - 1;
-    int des_row = available_cols[des_col];
+    int des_col = game->select_cols[game->total_moves-1] - 1;
+    int des_row = game->available_cols[des_col];
    //horizental
     for(int i=-3; i<=3; i++)
     {
-        //if(des_col+i >= 0 && des_col+i < cols)
+        if(des_col+i >= 0 && des_col+i < game->cols)
         while(des_col+i < 0) i++;
-        if(des_col+i > cols-1) break;
-        if(playerTurn.symbol == game[des_row][des_col + i]) counter++;
+        if(des_col+i > game->cols-1) break;
+        if(playerTurn->symbol == game->board[des_row][des_col + i]) counter++;
         else{
             if(counter >= 4) score += counter-3;
             counter=0;
@@ -400,8 +361,8 @@ int count_score(int rows, int cols, char game[][cols], int available_cols[], int
     //vertical
     for(int i=0; i<=3; i++)
     {
-        if(des_row+i > rows-1) break;
-        if(playerTurn.symbol == game[des_row + i][des_col]) counter++;
+        if(des_row+i > game->rows-1) break;
+        if(playerTurn->symbol == game->board[des_row + i][des_col]) counter++;
         else{
             if(counter >= 4) score += counter-3;
             counter=0;
@@ -413,8 +374,8 @@ int count_score(int rows, int cols, char game[][cols], int available_cols[], int
     for(int i=-3; i<=3; i++)
     {
         while(des_row+i < 0 || des_col+i < 0) i++;
-        if(des_row+i > rows-1 || des_col+i > cols-1) break;
-        if(playerTurn.symbol == game[des_row + i][des_col + i]) counter++;
+        if(des_row+i > game->rows-1 || des_col+i > game->cols-1) break;
+        if(playerTurn->symbol == game->board[des_row + i][des_col + i]) counter++;
         else{
             if(counter >= 4) score += counter-3;
             counter=0;
@@ -422,18 +383,46 @@ int count_score(int rows, int cols, char game[][cols], int available_cols[], int
     }
     if(counter >= 4) score += counter-3;
     counter=0;
-    //back diagonal
+    //off diagonal
      for(int i=-3; i<=3; i++)
     {
-        while(des_row-i > rows-1 || des_col+i < 0) i++;  //-> prop here (alhamdulellah)
-        if(des_row-i > rows-1 || des_col+i > cols-1) break;
-        if(playerTurn.symbol == game[des_row - i][des_col + i]) counter++;
+        while(des_row-i > game->rows-1 || des_col+i < 0) i++;  //-> prop here (alhamdulellah)
+        if(des_row-i > game->rows-1 || des_col+i > game->cols-1) break;
+        if(playerTurn->symbol == game->board[des_row - i][des_col + i]) counter++;
         else{
             if(counter >= 4) score += counter-3;
             counter=0;
         }
     }
     if(counter >= 4) score += counter-3;
-
     return score;
+}
+
+void GameOver(struct tool * game)
+{
+    printf(YELLOW "GAME OVER\n");
+    if(game->first->score == game->second->score){
+        printf("THERE IS NO WINNER\n");
+        return 0;
+    }
+    player *winner;
+    if(game->first->score > game->second->score)
+        winner = game->first;
+    else
+        winner = game->second;
+    switch(game->mode)
+    {
+        case 1 :
+            if(winner == game->first){
+                printf("YOU ARE THE WINNER !!\nPLEASE, ENTER YOUR NAME..\n");
+                scanf("%s", &winner->name);
+                break;
+            }
+            printf("YOU LOSE THE GAME..\n");
+            break;
+        case 2 :
+        printf(CYAN "%s PLAYER IS THE WINNER !!\n please Enter your name, %s PLAYER..\n" RESET, winner->name, winner->name);
+        scanf("%s", &winner->name);
+        break;
+    }
 }
