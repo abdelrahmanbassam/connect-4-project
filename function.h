@@ -1,37 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include "Rxml.h"
 
-#define RED     "\x1b[31m"
-#define GREEN   "\x1b[32m"
-#define YELLOW  "\x1b[33m"
-#define BLUE    "\x1b[34m"
-#define MAGENTA "\x1b[35m"
-#define CYAN    "\x1b[36m"
-#define RESET   "\x1b[0m"
 
-// global values for height,Highscore,width,numberof fails
-//int heightG,HighscoreG,widthG,NumOfaouls=0;
 
-typedef struct{
-    char name[20];
-    char symbol;
-    short int score;
-    //short int numOfMove;
-}player;
-
-struct tool{
-    short int rows, cols, total_moves, nofUndo, high_scores, mode, level;
-    time_t gameTime;
-    short int *available_cols, *select_cols, undo_moves[100*100][2];  //rembeber to make select_cols an array not a pointer to save it
-    player *first, *second;
-    char board[100][100];
-};
 
 int main_menu(struct tool * game)
 {
     char choice[10];
-    printf("Hello, choose the game mode..\n1) Start new game\n2) Load a game\n3) View top players\n4) Quit\n");
+    printf( BLUE "Hello, choose the game mode..\n1) Start new game\n2) Load a game\n3) View top players\n4) Quit\n");
     scanf("%s", &choice);
     while(atoi(choice) < 1 || atoi(choice) > 4){
         printf("Plaese, Enter a valid number mode..\n");
@@ -41,9 +19,21 @@ int main_menu(struct tool * game)
     {
     case 1 :    start_game(game);
         break;
-    case 2 :    //load();
+    case 2 :
+        load(game);
+        char select_menu[10];
+        int moves = game->total_moves;
+        game->total_moves=0; game->first->score=0; game->second->score=0;
+        for(int i=0; i<moves; i++){
+            sprintf(select_menu, "%d", game->select_cols[i]);
+            make_move(game, select_menu);
+        }
+        if(game->mode == 1)
+            mode_1player(game);
+        else
+            mode_2players(game);
         break;
-    case 3 :    //scan_highScores();
+    case 3 :    MENU_HIGHSCORE(game);
         break;
     case 4 :    return 0;
         break;
@@ -71,107 +61,6 @@ void start_game(struct tool * game)
     else
         mode_2players(game);
 }
-int select_level()
-{
-    char level[10];
-    printf("What's level do you want ?\n1) Easy\n2) Medium\n3) Hard\n4) Super hard\n");
-    while(atoi(level) < 1 || atoi(level) > 4)
-    {
-        printf("Please, Enter a vaild number to choose the level..\n");
-        scanf("%s", level);
-    }
-    return atoi(level);
-}
-
-
-void mode_1player(struct tool *game)
-{
-    game->level = select_level();
-    game->gameTime = time(NULL);
-    switch(game->level)
-    {
-        case 1 :  level_easy(game);
-            break;
-        case 2 :    level_medium(game);
-            break;
-        case 3 :    level_hard(game);
-            break;
-        case 4 :    level_supeHard(game);
-            break;
-    }
-  //  char select_menu[10];*/
-
-   /* scan_game(*game);
-     while(game->total_moves < (game->rows*game->cols))
-    {
-        if(game->total_moves%2 == 0){
-            scanf("%s", select_menu);
-            inGame_menu(game, select_menu);
-        }else{
-            sprintf(select_menu, "%d", (rand()%game->cols +1));
-            inGame_menu(game, select_menu);
-        }
-        scan_game(*game);
-    }
-    GameOver(game);*/
-
-
-}
-
-
-int level_easy(struct tool *game)
-{
-    srand(time(NULL));
-    char select_menu[10];
-
-    scan_game(*game);
-     while(game->total_moves < (game->rows*game->cols))
-    {
-        if(game->total_moves%2 == 0){
-            scanf("%s", select_menu);
-            inGame_menu(game, select_menu);
-        }else{
-            sprintf(select_menu, "%d", (rand()%game->cols +1));
-            inGame_menu(game, select_menu);
-        }
-        scan_game(*game);
-    }
-    GameOver(game);
-}
-
-int level_medium(struct tool *game)
-{
-    srand(time(NULL));
-    char select_menu[10];
-
-    scan_game(*game);
-     while(game->total_moves < (game->rows*game->cols))
-    {
-        if(game->total_moves%2 == 0){
-           /* scanf("%s", select_menu);
-            inGame_menu(game, select_menu);
-        }else{
-            sprintf(select_menu, "%d", );
-            inGame_menu(game, select_menu);
-        }*/
-        scan_game(*game);
-    }
-    GameOver(game);
-
-}
-}
-
-
-int level_hard(struct tool *game)
-{
-
-}
-
-int level_supeHard(struct tool *game)
-{
-
-}
-
 
 void mode_2players(struct tool *game)
 {
@@ -216,8 +105,15 @@ void scan_game(struct tool game)
     }
 }
 
-void creat_game(struct tool *game)
+void creat_game(struct tool *game, player * first, player * second)
 {
+    game->first = first, game->second = second;
+    strcpy(first->name, "FIRST"), strcpy(second->name, "SECOND");
+    first->symbol = 'X', second->symbol = 'O';
+    system("color 00");
+    first->score = 0, second->score = 0;
+    game->total_moves =0, game->level=0;
+
     for(int i=0; i<game->rows; i++)
         for(int j=0; j<game->cols; j++)
             game->board[i][j] = ' ';
@@ -259,12 +155,24 @@ int inGame_menu(struct tool *game, char select_menu[])
             else
                 redo(game);
             break;
-        case 's' :  //save();
+        case 's' :
+                take_current_game(*game);
+                save();
             break;
-        case 'e' :  //exit();
-            return -1;
+        case 'e' :
+            printf("Do you want to leave?\n1)Yes\n2)No\n");
+            scanf("%s", select_menu);
+            if(atoi(select_menu) == 1){
+                printf("Do you want to save the game?\n1)Yes\n2)No\n");
+                scanf("%s", select_menu);
+                if(atoi(select_menu) == 1) save();
+                _Exit(0);
+            }
+            break;
     }
 }
+
+
 
 void make_move(struct tool *game, char select_menu[])
 {
@@ -398,6 +306,108 @@ int count_score(struct tool *game)
     return score;
 }
 
+void select_level(struct tool *game)
+{
+    char level[10];
+    printf("What's level do you want ?\n1) Easy\n2) Medium\n3) Hard\n4) Super hard\n");
+    while(atoi(level) < 1 || atoi(level) > 4)
+    {
+        printf("Please, Enter a vaild number to choose the level..\n");
+        scanf("%s", level);
+    }
+    game->level = atoi(level);
+}
+
+
+void mode_1player(struct tool *game)
+{
+    if(game->level == 0) select_level(game);
+    game->gameTime = time(NULL);
+    switch(game->level)
+    {
+        case 1 :    level_easy(game);
+            break;
+        case 2 :    level_medium(game);
+            break;
+        case 3 :    level_hard(game);
+            break;
+        case 4 :    level_supeHard(game);
+            break;
+    }
+}
+  //  char select_menu[10];*/
+
+   /* scan_game(*game);
+     while(game->total_moves < (game->rows*game->cols))
+    {
+        if(game->total_moves%2 == 0){
+            scanf("%s", select_menu);
+            inGame_menu(game, select_menu);
+        }else{
+            sprintf(select_menu, "%d", (rand()%game->cols +1));
+            inGame_menu(game, select_menu);
+        }
+        scan_game(*game);
+    }
+    GameOver(game);*/
+
+
+
+
+int level_easy(struct tool *game)
+{
+    srand(time(NULL));
+    char select_menu[10];
+
+    scan_game(*game);
+     while(game->total_moves < (game->rows*game->cols))
+    {
+        if(game->total_moves%2 == 0){
+            scanf("%s", select_menu);
+            inGame_menu(game, select_menu);
+        }else{
+            sprintf(select_menu, "%d", (rand()%game->cols +1));
+            inGame_menu(game, select_menu);
+        }
+        scan_game(*game);
+    }
+    GameOver(game);
+}
+
+int level_medium(struct tool *game)
+{
+    srand(time(NULL));
+    char select_menu[10];
+
+    scan_game(*game);
+     while(game->total_moves < (game->rows*game->cols))
+    {
+        if(game->total_moves%2 == 0){
+           /* scanf("%s", select_menu);
+            inGame_menu(game, select_menu);
+        }else{
+            sprintf(select_menu, "%d", );
+            inGame_menu(game, select_menu);
+        }*/
+        scan_game(*game);
+    }
+    GameOver(game);
+
+}
+}
+
+
+int level_hard(struct tool *game)
+{
+
+}
+
+int level_supeHard(struct tool *game)
+{
+
+}
+
+
 void GameOver(struct tool * game)
 {
     printf(YELLOW "GAME OVER\n");
@@ -416,6 +426,7 @@ void GameOver(struct tool * game)
             if(winner == game->first){
                 printf("YOU ARE THE WINNER !!\nPLEASE, ENTER YOUR NAME..\n");
                 scanf("%s", &winner->name);
+                END_sortandstorge(winner);
                 break;
             }
             printf("YOU LOSE THE GAME..\n");
@@ -423,6 +434,7 @@ void GameOver(struct tool * game)
         case 2 :
         printf(CYAN "%s PLAYER IS THE WINNER !!\n please Enter your name, %s PLAYER..\n" RESET, winner->name, winner->name);
         scanf("%s", &winner->name);
+        END_sortandstorge(winner);
         break;
     }
 }

@@ -2,14 +2,43 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-//#include "finction.h"
+
+#define RED     "\x1b[31m"
+#define GREEN   "\x1b[32m"
+#define YELLOW  "\x1b[33m"
+#define BLUE    "\x1b[34m"
+#define MAGENTA "\x1b[35m"
+#define CYAN    "\x1b[36m"
+#define RESET   "\x1b[0m"
+
+
+
+typedef struct{
+    char name[20];
+    char symbol;
+    short int score;
+}player;
+
 typedef struct
 {
- char gamegrid[50][50];
-  int game_rows;
-  int game_colns;
   char gamename[30];
+  short int game_rows, game_colns;
+  short int select_cols[50*50];
+  short int total_moves, high_scores, mode, level;
+  player first, second;
 }Game_info;
+
+extern Game_info current_game;
+
+struct tool{
+    time_t gameTime;
+    short int rows, cols, total_moves, nofUndo, high_scores, mode, level;
+    short int available_cols[50], select_cols[50*50], undo_moves[50*50][2];  //rembeber to make select_cols an array not a pointer to save it
+    char board[50][50];
+    char game_name[20];
+    player *first, *second;
+};
+
 
 void swapstruct(player *ar1,player *ar2)
 {
@@ -46,19 +75,31 @@ return 1;
 }
 
 //print highscore list in menu
-void MENU_HIGHSCORE()
+void MENU_HIGHSCORE( struct tool * game)
 {
     player printHscore[1000];
-    int size_of_AvH=0,rank=1,desiredHS=HighscoreG;//desired=parametar taken from XML file
-    FILE *Sorterd_file;
+    int size_of_AvH=0,rnk=1,desiredHS=game->high_scores;//desired=parametar taken from XML file
+
+    FILE *Sorterd_file,*backup_key;
  if((Sorterd_file=fopen("highscores.bin","rb"))==NULL)
    {
-    printf(RED"can't find the file!\n");//return menu or creat a new file
+    //return menu and creat a new file
+     printf(RED"can't find the file! creating New one \n");
+      backup_key=fopen("highscores.bin","wb");
+      fclose(backup_key);
+      main_menu(game);
+      return 0;
    }
- else
- {
+
   while(fread(&printHscore[size_of_AvH],sizeof(player),1,Sorterd_file)==1)
     size_of_AvH++;
+
+    if(size_of_AvH==0)
+    {
+        printf(RED"THERE IS NO HIGHSCORES YET!\n");
+        main_menu(game);
+        return 0;
+    }
 
    // print high score list format
    if(size_of_AvH<desiredHS)
@@ -66,30 +107,33 @@ void MENU_HIGHSCORE()
    printf(RED"there are only %d available\n" ,size_of_AvH);
    desiredHS=size_of_AvH;
    }
-   printf(BLUE"RANK  NAME             symbol  Game_Dim _H*W     SCORE\n\n");
+   printf(BLUE"RANK  NAME             symbol  SCORE\n\n");
    for(int i=0;i<desiredHS;i++)
    {
-    printf("%-5d%-20s%-7c%4d*%-10d%6d \n",rank,printHscore[i].name,printHscore[i].symbol,printHscore[i].gameheight,printHscore[i].gamewidth,printHscore[i].score);
+    printf(GREEN"%-5d%-20s%1c%8d \n",rnk,printHscore[i].name,printHscore[i].symbol,printHscore[i].score);
      if(printHscore[i].score!=printHscore[i+1].score)
-      rank++;
+      rnk++;
    }
- }
+
  fclose(Sorterd_file);
 }
 
 //add after ending the game and show player rank
-void END_sortandstorge(player player1)
+void END_sortandstorge(player * winner)
 {
- printf(GREEN"%s's score : %d\n",player1.name,player1.score);
+ printf(GREEN"%s's score : %d\n",winner->name,winner->score);
+
+ player player1 = *winner;
 
  int check=0,NumOplayers=0;
  player arrayHighscore[1000];
- FILE *highScadd;
+ FILE *highScadd,*backup_key;
  //assign the highscores into array to know the numberofplayers and to order them according to score
- if((highScadd=fopen("highscores.bin","a+b"))==NULL)
-   printf(RED"can't find the file!\n");
- else
- {
+ highScadd=fopen("highscores.bin","a+b");
+
+
+
+
    while(fread(&arrayHighscore[NumOplayers],sizeof(player),1,highScadd)==1)
    {
      if(CompareToLower(player1.name,arrayHighscore[NumOplayers].name))
@@ -127,7 +171,7 @@ void END_sortandstorge(player player1)
 
  fclose(savesorted);
 
-  }
+
  }
 
  int Checkoccur(char *SUbword,char *word)
@@ -150,11 +194,11 @@ void END_sortandstorge(player player1)
 }
 
 
-void Rxml()
+void Rxml(struct tool * game)
 {
   static int NumOfaouls=0;
   int FirstConi,Lastconvi;
-  Highscore=0;height=0;width=0;//set intial values of global to 0;
+  game->rows=0;game->cols=0; game->high_scores=0;//set intial values of global to 0;
 
 
  char c;//char to read file and put into array
@@ -169,7 +213,7 @@ void Rxml()
    strcpy(filepath,"readXML.xml");
  else
  {
-  printf("Enter the file correct path:\n");
+  printf(GREEN"Enter the file correct path:\n");
   gets(filepath);
  }
 
@@ -181,7 +225,7 @@ void Rxml()
        AllChars[len++]=c;
     }
  }
- 
+
  FirstConi=Checkoccur("<Configurations>",AllChars);
  Lastconvi=Checkoccur("</Configurations>",AllChars);
  int newi=(FirstConi+16),Finali=(Lastconvi);//16 is the number of chars in <Configurations>
@@ -200,7 +244,7 @@ void Rxml()
  int Fscore=Checkoccur("<Highscores>",newarray);
  int Lscore=Checkoccur("</Highscores>",newarray);
 
- //get height from Xml //needs minimaization by &&isspace 
+ //get height from Xml //needs minimaization by &&isspace
   for(int i=(Fheight+8);i<Lheight;i++)
   {
     if(!isdigit(newarray[i]))
@@ -211,10 +255,10 @@ void Rxml()
      }
      else
      {
-      height=-1;break;
+      game->rows=-1;break;
      }
-    } 
-    height=height*10+(newarray[i]-'0');
+    }
+    game->rows=game->rows*10+(newarray[i]-'0');
   }
   //get width from Xml
   for(int i=(Fwidth+7);i<Lwidth;i++)
@@ -227,10 +271,10 @@ void Rxml()
      }
      else
      {
-      width=-1;break;
+      game->cols=-1;break;
      }
-    } 
-    width=width*10+(newarray[i]-'0');
+    }
+    game->cols=game->cols*10+(newarray[i]-'0');
   }
   //get highscore from xml
   for(int i=(Fscore+12);i<Lscore;i++)
@@ -243,134 +287,153 @@ void Rxml()
      }
      else
      {
-      Highscore=-1;break;
+      game->high_scores=-1;break;
      }
-    } 
-    Highscore=Highscore*10+(newarray[i]-'0');
+    }
+    game->high_scores=game->high_scores*10+(newarray[i]-'0');
   }
 
- //check of all values 
+ //check of all values
  //need to put constraints according to mourad's max limit grid
- if(FirstConi==-1||Lastconvi==-1|| width==-1 || height==-1 || Highscore==-1 || Fheight==-1 || Lheight==-1||Fwidth==-1||Lwidth==-1||Fscore==-1|| Lscore==-1)
+ if(FirstConi==-1||Lastconvi==-1|| game->cols==-1 || game->rows==-1 || game->high_scores==-1 || Fheight==-1 || Lheight==-1||Fwidth==-1||Lwidth==-1||Fscore==-1|| Lscore==-1)
  {
-    printf("something goes wrong!\n");
+    printf(RED"something goes wrong!\n");
     if(NumOfaouls<3)
     {
      NumOfaouls++;
      fclose(xml);
-      Rxml();
+      Rxml(game);
     }
-    else 
+    else
     {
-    printf("you failed 3 times!! all set to default height=7 width=9 tophighscore=10\n");
-    height=7;width=9;Highscore=10;
+    printf(RED"you failed 3 times!! all set to default height=7 width=9 tophighscore=10\n");
+    game->rows=7;game->cols=9;game->high_scores=10;
     }
  }
  fclose(xml);
 }
 
-
-
-void save(Game_info newgame)
+void take_current_game(struct tool game)
 {
-   
+    current_game.first = *(game.first);
+    current_game.second = *(game.second);
+    //current_game->gamename = game->game_name;
+    current_game.game_rows = game.rows;
+    current_game.game_colns = game.cols;
+    current_game.high_scores = game.high_scores;
+    current_game.level = game.level;
+    current_game.mode = game.mode;
+    current_game.total_moves = game.total_moves;
+    for(int i=0; i<game.total_moves; i++)
+        current_game.select_cols[i] = game.select_cols[i];
+}
 
- FILE *keysave;
- Game_info Games_Array[3];
- int ii=0,val;
- char slotnumber[5];
+void load_old_game(struct tool * game, Game_info old_game)
+{
+    strcpy(game->first->name, old_game.first.name);
+    strcpy(game->second->name, old_game.second.name);
+    game->first->symbol = old_game.first.symbol;
+    game->second->symbol = old_game.second.symbol;
+    game->first->score = old_game.first.score;
+    game->second->score = old_game.second.score;
+    //current_game->gamename = game->game_name;
+    game->rows = old_game.game_rows;
+    game->cols = old_game.game_colns;
+    game->high_scores = old_game.high_scores;
+    game->level = old_game.level;
+    game->mode = old_game.mode;
+    game->total_moves = old_game.total_moves;
+    for(int i=0; i<old_game.total_moves; i++)
+        game->select_cols[i] = old_game.select_cols[i];
+}
 
- if((keysave=fopen("savedgames.bin","r+b"))==NULL) 
+
+
+void save()
+{
+
+ FILE *save,*backup_key;
+ Game_info Games_Array[30];
+ int size_of_games=0;
+ save=fopen("savedgames.bin","a+b");
+
+
+
+
+
+  while(fread(&Games_Array[size_of_games],sizeof(Game_info),1,save)==1)
+  size_of_games++;
+
+
+
+   printf(BLUE"ENTER NAME OF GAME \n ");
+   scanf("%s",&current_game.gamename);
+
+   fwrite(&current_game,sizeof(Game_info),1,save);
+   Games_Array[size_of_games]=current_game;
+   size_of_games++;
+
+ //sort saved games array
+ for(int i=0;i<size_of_games;i++)
+  Games_Array[i%3]=Games_Array[i];
+ fclose(save);
+
+ //write sorted games into file
+ FILE *write_sort_save;
+ write_sort_save=(fopen("savedgames.bin","wb"));
+ for (int i= 0; i <size_of_games ; i++)
+    fwrite(&Games_Array[i],sizeof(Game_info),1,write_sort_save);
+
+  fclose(write_sort_save);
+}
+
+
+
+ void load(struct tool *game)
  {
-  printf("can't find the file!\n");exit(1); //creat a new one if it fails
+
+  FILE *loadx,*backup_key;
+ Game_info load_array[3];
+ int size_of_load=0,val;
+ char gamenumber[5];
+ if((loadx=fopen("savedgames.bin","rb"))==NULL)
+ {
+     printf(RED"can't find the file! creating New one \n");
+       backup_key=fopen("savedgames.bin","wb");
+      fclose(backup_key);
+      main_menu(game);
+      return 0;
  }
 
-  
-    for(int i=0;i<3;i++)
-    {
-     if(!fread(&Games_Array[i],sizeof(Game_info),1,keysave))
-       strcpy(Games_Array[i].gamename,"EMPTY");
-    }
 
-    rewind(keysave);
-
-  while(fread(&Games_Array[ii++],sizeof(Game_info),1,keysave));
-   
-   
-  
-   printf("Enter game name\n");
-    gets(newgame.gamename);
-  
-     
-  printf("available games : \n");
-  printf("  Game number        GAME NAME\n");
- for(int i=0;i<3;i++)
+ while(fread(&load_array[size_of_load],sizeof(Game_info),1,loadx))
  {
-  printf("     (%1d)%20s\n",i+1,Games_Array[i].gamename);
+    size_of_load++;
+    if(size_of_load==3)break;
  }
- printf("Select a slot to save in\n");
-  while(1)
+
+
+ if(size_of_load==0)
  {
-    gets(slotnumber);//need maintance if user input char program will crash
-    val=atoi(slotnumber);
-    if((val>0)&&(val<4))
-      break;
- printf("ENTER a valid number\n");
- } 
-  Games_Array[val-1]=newgame;
- rewind(keysave);
-
- for (int i = 0; i < 3; i++)
-   fwrite(&Games_Array[i],sizeof(Game_info),1,keysave);
- 
- 
- 
-
- fclose(keysave);
-} 
-
- 
- 
- Game_info load(Game_info *New_info)
-{ 
-   FILE *keyload;
-   Game_info load_array[3];
-   int size_of_load=0,val;
-  
- if((keyload=fopen("savedgames.bin","rb"))==NULL)
- {
-  printf("can't find the file!\n");
-  exit(1);//go to menu //or creat a new file
+    printf(RED"NO SAVED GAMES YET\n");
+    main_menu(game);
+    return 0;
  }
- 
-    while(fread(&load_array[size_of_load],sizeof(Game_info),1,keyload))
-      size_of_load++;
-
-
- 
-   if(size_of_load==0)
-    printf("NO SAVED GAMES YET\n");//go to menu //or creat a new file
- 
-   printf("available games : \n");
-   printf("  Game number        GAME NAME\n");
-
-      for(int i=0;i<3;i++)
-      {
-      printf("     (%1d)%20s\n",i+1,load_array[i].gamename);
-      }
-  char gamenumber[5];
-       printf("Enter the number of game you want\n");
-    while(1)
-     {
-
-       gets(gamenumber);
-       val=atoi(gamenumber);
-       if((val>0)&&(val<=3)&&(strcmp(load_array[val-1].gamename,"EMPTY")))
-       break;
-      printf("ENTER a valid number\n");
-     }
-
-  return load_array[val-1];
- 
-  
-} 
+ else
+ {
+   printf(GREEN"available games : \n");
+printf(BLUE"  Game number        GAME NAME\n");
+ for(int i=0;i<size_of_load;i++)
+ printf("     (%1d)%20s\n",i+1,load_array[i].gamename);
+  }
+ printf(BLUE"Enter the number of game you want\n");
+ while(1)
+{
+    gets(gamenumber);
+    val=atoi(gamenumber);
+    if((val>0)&&(val<=size_of_load))//need maintance if user input char program will crash
+    break;
+ printf(RED"ENTER a valid number\n");
+ }
+  load_old_game(game,load_array[val-1]);
+}
