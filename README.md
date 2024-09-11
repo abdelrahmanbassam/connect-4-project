@@ -3,9 +3,9 @@
 ## Overview
 
 This is a console-based implementation of the classic Connect 4 game, featuring color-coded pieces, customizable board dimensions, save/load functionality, a high scores leaderboard, and a simple AI opponent.
-
-https://github.com/user-attachments/assets/bfa65fb4-3a09-4541-96a8-0929ee61ed72
 []()
+
+https://github.com/user-attachments/assets/bfb09250-62b7-49fd-aad6-f29993ec42f0
 
 ## Features
 
